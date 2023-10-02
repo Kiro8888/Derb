@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Guardar Datos en JSON</title>
+</head>
+<body>
+    <h1>Guardar Datos en JSON</h1>
+
+    <form id="miFormulario">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title"><br><br>
+
+        <label for="descipcion">Descripcion:</label>
+        <input type="text" id="descipcion" name="descipcion"><br><br>
+
+        <label for="placeholder">Placeholder:</label>
+        <input type="text" id="placeholder" name="placeholder"><br><br>
+
+        <input type="submit" value="Guardar">
+    </form>
+
+    <script>
+        document.getElementById("miFormulario").addEventListener("submit", function(event) {
+            event.preventDefault(); // Evita que el formulario se envíe normalmente
+
+            // Captura los datos del formulario
+            var title = document.getElementById("title").value;
+            var descipcion = document.getElementById("descipcion").value;
+            var placeholder = document.getElementById("placeholder").value;
+
+
+
+            // Crea un objeto JSON con los datos
+            var datosJSON = {
+                title: title,
+                descipcion: descipcion,
+                placeholder:placeholder
+            };
+
+            // Convierte el objeto JSON a una cadena JSON
+            var datosJSONString = JSON.stringify(datosJSON);
+
+            // Crea un enlace para descargar el archivo JSON
+            var enlace = document.createElement("a");
+            enlace.href = "data:application/json;charset=utf-8," + encodeURIComponent(datosJSONString);
+            enlace.download = "datos.json"; // Nombre del archivo JSON
+
+            // Simula un clic en el enlace para iniciar la descarga
+            enlace.click();
+        });
+    </script>
+</body>
+</html>
