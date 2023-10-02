@@ -13,7 +13,7 @@ router.register(r'open-questions', OpenQuestionViewSet)
 
 urlpatterns = djgentelellaurls + [
     path('', mi_vista, name='home'),
-    path('form/', form ,name='form'),
+    path('form/', form,name='form'),
     path('api/', include(router.urls)),
     path('save-data/', save_model_data, name='save-data'),
     path('load-data/', load_model_data, name='load-data'),
