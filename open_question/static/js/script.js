@@ -5,6 +5,8 @@ const textareasContainer = document.getElementById('textareas-container');
 const miFormulario = document.getElementById('miFormulario');
 const btn_submit = document.getElementById('form_submit');
 
+
+
 // Event listener para el formulario
 miFormulario.addEventListener('submit', function (event) {
     event.preventDefault();
@@ -50,8 +52,26 @@ formPreview.addEventListener('drop', (e) => {
         helpInput.type = 'text';
         helpInput.placeholder = 'Help';
 
+
+
         const saveButton = document.createElement('button');
         saveButton.textContent = 'Guardar';
+
+        // Función para mover hacia arriba
+function moveUp(textareaContainer) {
+    const prevTextareaContainer = textareaContainer.previousElementSibling;
+    if (prevTextareaContainer) {
+        textareaContainer.parentNode.insertBefore(textareaContainer, prevTextareaContainer);
+    }
+}
+
+// Función para mover hacia abajo
+function moveDown(textareaContainer) {
+    const nextTextareaContainer = textareaContainer.nextElementSibling;
+    if (nextTextareaContainer) {
+        textareaContainer.parentNode.insertBefore(nextTextareaContainer, textareaContainer);
+    }
+}
         saveButton.addEventListener('click', () => {
             // Aquí puedes agregar el código para guardar la información en tu API
             const formData = {
@@ -112,15 +132,30 @@ formPreview.addEventListener('drop', (e) => {
             const descriptionDiv = document.createElement('div');
             descriptionDiv.textContent = formData.description;
 
+
+              const upButton = document.createElement('button');
+    upButton.textContent = 'Subir';
+    upButton.addEventListener('click', () => {
+        moveUp(textareaContainer);
+    });
+
+    const downButton = document.createElement('button');
+    downButton.textContent = 'Bajar';
+    downButton.addEventListener('click', () => {
+        moveDown(textareaContainer);
+    });
+
             // Agregar elementos al contenedor
             textareaContainer.appendChild(titleDiv);
             textareaContainer.appendChild(textareaElement);
             textareaContainer.appendChild(descriptionDiv);
+            textareaContainer.appendChild(upButton);
+            textareaContainer.appendChild(downButton);
 
             // Agregar el contenedor al contenedor de textareas
             textareasContainer.appendChild(textareaContainer);
 
-            
+
         });
 
         customForm.appendChild(titleInput);
@@ -132,6 +167,7 @@ formPreview.addEventListener('drop', (e) => {
         customFormContainer.appendChild(customForm);
     }
 });
+
 
 btn_submit.addEventListener('click', function () {
     console.log('El botón ha sido pulsado');

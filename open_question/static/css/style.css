@@ -106,3 +106,15 @@
             background-color: #0056b3;
         }
 
+        #form-preview {
+        position: relative;
+        }
+
+        #form-submit-container {
+         position: absolute;
+         bottom: 10px;
+         right: 10px;
+         }
+
+
+
