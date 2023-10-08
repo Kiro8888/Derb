@@ -35,3 +35,5 @@ def load_model_data(request):
     loaded_data = load_data_from_json('datos.json')
     return JsonResponse(loaded_data, safe=False)
 
+
+

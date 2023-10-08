@@ -3,17 +3,15 @@ const formPreview = document.getElementById('form-preview');
 const customFormContainer = document.getElementById('custom-form-container');
 const textareasContainer = document.getElementById('textareas-container');
 const miFormulario = document.getElementById('miFormulario');
+const btn_submit = document.getElementById('form_submit');
 
 // Event listener para el formulario
 miFormulario.addEventListener('submit', function (event) {
     event.preventDefault();
-
     const title = document.getElementById('form-preview').value;
     const description = document.getElementById('form-preview').value;
     const placeholder = document.getElementById('form-preview').value;
     const help = document.getElementById('form-preview').value;
-
-
 });
 
 // Event listener para el elemento 'openQuestion'
@@ -39,22 +37,18 @@ formPreview.addEventListener('drop', (e) => {
         const titleInput = document.createElement('input');
         titleInput.type = 'text';
         titleInput.placeholder = 'Title';
-        customForm.appendChild(titleInput);
 
         const descriptionInput = document.createElement('input');
         descriptionInput.type = 'text';
         descriptionInput.placeholder = 'Description';
-        customForm.appendChild(descriptionInput);
 
         const placeholderInput = document.createElement('input');
         placeholderInput.type = 'text';
         placeholderInput.placeholder = 'Placeholder';
-        customForm.appendChild(placeholderInput);
 
         const helpInput = document.createElement('input');
         helpInput.type = 'text';
         helpInput.placeholder = 'Help';
-        customForm.appendChild(helpInput);
 
         const saveButton = document.createElement('button');
         saveButton.textContent = 'Guardar';
@@ -78,19 +72,18 @@ formPreview.addEventListener('drop', (e) => {
             .then(response => {
                 if (response.ok) {
                     console.log('Datos enviados con éxito a la API');
-            titleInput.value = '';
-            descriptionInput.value = '';
-            placeholderInput.value = '';
-            helpInput.value = '';
-            saveButton.value = '';
+                    titleInput.value = '';
+                    descriptionInput.value = '';
+                    placeholderInput.value = '';
+                    helpInput.value = '';
+                    saveButton.value = '';
 
-            // Aquí agregamos el código para ocultar los campos de entrada
-            titleInput.style.display = 'none';
-            descriptionInput.style.display = 'none';
-            placeholderInput.style.display = 'none';
-            helpInput.style.display = 'none';
-            saveButton.style.display = 'none';
-
+                    // Ocultar los campos de título y descripción
+                    titleInput.style.display = 'none';
+                    descriptionInput.style.display = 'none';
+                    placeholderInput.style.display = 'none';
+                    helpInput.style.display = 'none';
+                    saveButton.style.display = 'none';
                 } else {
                     console.error('Error al enviar los datos a la API');
                 }
@@ -99,24 +92,47 @@ formPreview.addEventListener('drop', (e) => {
                 console.error('Error al enviar los datos a la API:', error);
             });
 
-            // Crear un nuevo textarea con los datos ingresados
+
+
+            // Crear un nuevo div para contener el título y la descripción
+            const textareaContainer = document.createElement('div');
+
+            // Título
+            const titleDiv = document.createElement('div');
+            titleDiv.textContent = formData.title;
+
+            // Textarea
             const textareaElement = document.createElement('textarea');
             textareaElement.placeholder = formData.placeholder;
             textareaElement.setAttribute('data-description', formData.description);
             textareaElement.style.width = '100%';
             textareaElement.style.height = '200px';
 
-            // Agregar el textarea al contenedor en "textareasContainer"
-            textareasContainer.appendChild(textareaElement);
+            // Descripción
+            const descriptionDiv = document.createElement('div');
+            descriptionDiv.textContent = formData.description;
 
-            // Limpiar los campos después de guardar
-            titleInput.value = '';
-            descriptionInput.value = '';
-            placeholderInput.value = '';
-            helpInput.value = '';
+            // Agregar elementos al contenedor
+            textareaContainer.appendChild(titleDiv);
+            textareaContainer.appendChild(textareaElement);
+            textareaContainer.appendChild(descriptionDiv);
+
+            // Agregar el contenedor al contenedor de textareas
+            textareasContainer.appendChild(textareaContainer);
+
+            
         });
+
+        customForm.appendChild(titleInput);
+        customForm.appendChild(descriptionInput);
+        customForm.appendChild(placeholderInput);
+        customForm.appendChild(helpInput);
         customForm.appendChild(saveButton);
 
         customFormContainer.appendChild(customForm);
     }
+});
+
+btn_submit.addEventListener('click', function () {
+    console.log('El botón ha sido pulsado');
 });
