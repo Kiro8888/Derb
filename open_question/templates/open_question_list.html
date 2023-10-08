@@ -3,7 +3,6 @@
 {% block stylesheets %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--<link rel="stylesheet" type="text/css" href="/static/style.css">-->
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
     <title>Generador de Formularios Drag and Drop</title>
 {% endblock stylesheets %}
@@ -18,74 +17,32 @@
         </div>
     </div>
 
-    <div class="form-preview" id="form-preview" droppable="true">
-        <h2>Formulario</h2>
-        <div id="formulario-contenido">
+ <div class="form-preview" id="form-preview" droppable="true">
+    <h2>Formulario</h2>
+    <div id="formulario-contenido">
+        <div id="textareas-container">
         </div>
-        <button class="mi-boton">Mi Botón</button>
     </div>
-
-
-    <div class="form_builder">
-         <div class="sidebar">
-        <h2>Basic</h2>
+</div>
+  <div class="form_builder">
+    <div class="sidebar">
+        <h2>Settings</h2>
         <div id="element">
-
             <form id="miFormulario">
-            <label for="title">Title:</label>
-            <input type="text" id="title" name="title"><br><br>
+                <div id="custom-form-container"></div>
 
-            <label for="description">Descripcion:</label>
-            <input type="text" id="description" name="description"><br><br>
-
-            <label for="placeholder">Placeholder:</label>
-            <input type="text" id="placeholder" name="placeholder"><br><br>
-
-             <label for="help">Help:</label>
-            <input type="text" id="help" name="help"><br><br>
-
-            <input type="submit" value="Guardar">
-        </form>
-
+            </form>
         </div>
     </div>
+</div>
 
 
     </div>
 
 </div>
-
-
-
-
-<!-- Modal -->
-<div id="openQuestionModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <h2>Pregunta Abierta</h2>
-        <form id="miFormulario">
-            <label for="title">Title:</label>
-            <input type="text" id="title" name="title"><br><br>
-
-            <label for="description">Descripcion:</label>
-            <input type="text" id="description" name="description"><br><br>
-
-            <label for="placeholder">Placeholder:</label>
-            <input type="text" id="placeholder" name="placeholder"><br><br>
-
-             <label for="help">Help:</label>
-            <input type="text" id="help" name="help"><br><br>
-
-            <input type="submit" value="Guardar">
-        </form>
-
-        <button id="closeModal">Cerrar</button>
-    </div>
-</div>
-
 
 {% endblock %}
 
 {% block js %}
-    <!--<script src="/static/script.js" defer></script>-->
 <script src="{% static 'js/script.js' %}"></script>
 {% endblock %}
