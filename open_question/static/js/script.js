@@ -4,27 +4,41 @@ const customFormContainer = document.getElementById('custom-form-container');
 const textareasContainer = document.getElementById('textareas-container');
 const miFormulario = document.getElementById('miFormulario');
 const btn_submit = document.getElementById('form_submit');
+const openQuestionElement = document.getElementById('openQuestion');
 
-// Variables para almacenar los valores
-let titleValue, descriptionValue, placeholderValue, helpValue;
 
-// Event listener para el formulario
+// Event listener para el formulario   SETTINGS
 miFormulario.addEventListener('submit', function (event) {
     event.preventDefault();
-    titleValue = document.getElementById('form-preview').value;
-    descriptionValue = document.getElementById('form-preview').value;
-    placeholderValue = document.getElementById('form-preview').value;
-    helpValue = document.getElementById('form-preview').value;
+    const titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.placeholder = 'Title';
+
+    const descriptionInput = document.createElement('input');
+    descriptionInput.type = 'text';
+    descriptionInput.placeholder = 'Description';
+
+    const placeholderInput = document.createElement('input');
+    placeholderInput.type = 'text';
+    placeholderInput.placeholder = 'Placeholder';
+
+    const helpInput = document.createElement('input');
+    helpInput.type = 'text';
+    helpInput.placeholder = 'Help';
+
+    // Acceder a los valores de los elementos de entrada
+    const titleValue = titleInput.value;
+    const descriptionValue = descriptionInput.value;
+    const placeholderValue = placeholderInput.value;
+    const helpValue = helpInput.value;
 
 });
 
 
 
-
-
+////ARRASTRAR Y SOLTAR
 
 // Event listener para el elemento 'openQuestion'
-const openQuestionElement = document.getElementById('openQuestion');
 openQuestionElement.addEventListener('dragstart', (e) => {
     e.dataTransfer.setData('text/plain', 'openQuestion');
 });
@@ -33,6 +47,9 @@ openQuestionElement.addEventListener('dragstart', (e) => {
 formPreview.addEventListener('dragover', (e) => {
     e.preventDefault();
 });
+
+
+/////////////////////////////////////////
 
 formPreview.addEventListener('drop', (e) => {
     e.preventDefault();
@@ -62,23 +79,16 @@ formPreview.addEventListener('drop', (e) => {
         const saveButton = document.createElement('button');
         saveButton.textContent = 'Guardar';
 
-        // Función para mover hacia arriba
-        function moveUp(textareaContainer) {
-            const prevTextareaContainer = textareaContainer.previousElementSibling;
-            if (prevTextareaContainer) {
-                textareaContainer.parentNode.insertBefore(textareaContainer, prevTextareaContainer);
-            }
-        }
-
-        // Función para mover hacia abajo
-        function moveDown(textareaContainer) {
-            const nextTextareaContainer = textareaContainer.nextElementSibling;
-            if (nextTextareaContainer) {
-                textareaContainer.parentNode.insertBefore(nextTextareaContainer, textareaContainer);
-            }
-        }
 
         saveButton.addEventListener('click', () => {
+
+
+
+
+                  ///////QUITAR, MOVER EL FETCH AL API
+
+
+
             // Aquí puedes agregar el código para guardar la información en tu API
             const formData = {
                 title: titleInput.value,
@@ -118,6 +128,13 @@ formPreview.addEventListener('drop', (e) => {
                 console.error('Error al enviar los datos a la API:', error);
             });
 
+
+///////////////////////////////QUITAR, MOVER EL FETCH AL API
+
+
+
+
+
             // Crear un nuevo div para contener el título y la descripción
             const textareaContainer = document.createElement('div');
 
@@ -136,6 +153,8 @@ formPreview.addEventListener('drop', (e) => {
             const descriptionDiv = document.createElement('div');
             descriptionDiv.textContent = formData.description;
 
+
+/////////////BOTON DE SUBIR Y BAJAR
             const upButton = document.createElement('button');
             upButton.textContent = 'Subir';
             upButton.addEventListener('click', () => {
@@ -147,6 +166,10 @@ formPreview.addEventListener('drop', (e) => {
             downButton.addEventListener('click', () => {
                 moveDown(textareaContainer);
             });
+//////////////////////////////////
+
+
+
 
             // Agregar elementos al contenedor
             textareaContainer.appendChild(titleDiv);
@@ -169,34 +192,21 @@ formPreview.addEventListener('drop', (e) => {
     }
 });
 
-btn_submit.addEventListener('click', function () {
-    console.log('El botón ha sido pulsado');
 
-    // Aquí puedes agregar el código para guardar la información en tu API
-    const formData = {
-        title: titleValue,
-        description: descriptionValue,
-        placeholder: placeholderValue,
-        help: helpValue
-    };
-
-    // Realizar la solicitud POST a tu API aquí
-    fetch('/api/open-questions/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => {
-        if (response.ok) {
-            console.log('Datos enviados con éxito a la API');
-            // Puedes agregar aquí el código para limpiar los valores si es necesario
-        } else {
-            console.error('Error al enviar los datos a la API');
+///////////////MOVER ARRIBA Y ABAJO
+        // Función para mover hacia arriba
+        function moveUp(textareaContainer) {
+            const prevTextareaContainer = textareaContainer.previousElementSibling;
+            if (prevTextareaContainer) {
+                textareaContainer.parentNode.insertBefore(textareaContainer, prevTextareaContainer);
+            }
         }
-    })
-    .catch(error => {
-        console.error('Error al enviar los datos a la API:', error);
-    });
-});
+
+        // Función para mover hacia abajo
+        function moveDown(textareaContainer) {
+            const nextTextareaContainer = textareaContainer.nextElementSibling;
+            if (nextTextareaContainer) {
+                textareaContainer.parentNode.insertBefore(nextTextareaContainer, textareaContainer);
+            }
+        }
+////////////////////////////////////////
