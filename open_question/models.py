@@ -31,3 +31,34 @@ class Response(models.Model):
 
 
 
+my_form = {
+    'config': {
+        'name': 'Mi Formulario',
+        'start_date': '2023-01-01',
+        'end_date': '2023-12-31',
+    },
+    'data': [
+        {
+            'title': 'Categoría 1',
+            'children': [
+                {
+                    'title': 'Subcategoría 1',
+                    'children': [
+                        {
+                            'class': 'number',
+                            'title': 'Pregunta 1',
+                            'description': 'Descripción de la Pregunta 1',
+                            'required': True,
+                        },
+                        {
+                            'class': 'boolean',
+                            'title': 'Pregunta 2',
+                            'description': 'Descripción de la Pregunta 2',
+                            'required': False,
+                        },
+                    ],
+                },
+            ],
+        },
+    ],
+}
