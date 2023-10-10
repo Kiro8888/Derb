@@ -7,9 +7,8 @@ class FormManager {
         this.btn_submit = document.getElementById('form_submit');
         this.openQuestionElement = document.getElementById('openQuestion');
 
-
-         // Declarar las variables como propiedades de la clase
-            this.registros = [];
+        // Declarar las variables como propiedades de la clase
+        this.registros = [];
 
         this.miFormulario.addEventListener('submit', this.handleFormSubmit.bind(this));
         this.openQuestionElement.addEventListener('dragstart', this.handleDragStart.bind(this));
@@ -17,28 +16,20 @@ class FormManager {
         this.formPreview.addEventListener('drop', this.handleDrop.bind(this));
         this.btn_submit.addEventListener('click', this.handleFormSubmit.bind(this));
 
-             this.miFormulario.addEventListener('click', (event) => {
+        this.miFormulario.addEventListener('click', (event) => {
             event.preventDefault(); // Evita la recarga de la página
-
         });
-
     }
-
 
     handleFormSubmit(event) {
         event.preventDefault();
-        const titleInput = this.createInput('Title');
-        const descriptionInput = this.createInput('Description');
-        const placeholderInput = this.createInput('Placeholder');
-        const helpInput = this.createInput('Help');
 
-        // Acceder a los valores de los elementos de entrada
-        const titleValue = titleInput.value;
-        const descriptionValue = descriptionInput.value;
-        const placeholderValue = placeholderInput.value;
-        const helpValue = helpInput.value;
+        // Ordenar los registros según el campo list_order
+        this.registros.sort((a, b) => a.list_order - b.list_order);
 
-        // Realizar acciones adicionales con los valores
+        for (const formData of this.registros) {
+            this.enviarDatosALaAPI(formData);
+        }
     }
 
     handleDragStart(e) {
@@ -72,12 +63,13 @@ class FormManager {
                     help: helpInput.value
                 };
 
-                 // Agregar el formData al array de registros
+                // Agregar el campo list_order al formData
+                formData.list_order = this.registros.length + 1; // Valor único para cada pregunta
+
+                // Agregar el formData al array de registros
                 this.registros.push(formData);
 
-
                 console.log(formData);
-
 
                 // LIMPIAR CAMPOS INPUT DEL SETTINGS
                 this.clearFields(titleInput, descriptionInput, placeholderInput, helpInput, saveButton);
@@ -165,17 +157,41 @@ class FormManager {
     }
 
     moveUp(textareaContainer) {
-        const prevTextareaContainer = textareaContainer.previousElementSibling;
-        if (prevTextareaContainer) {
-            textareaContainer.parentNode.insertBefore(textareaContainer, prevTextareaContainer);
+        const index = this.findIndexOfContainer(textareaContainer);
+        if (index > 0) {
+            const prevIndex = index - 1;
+            this.swapContainers(index, prevIndex);
+            this.updateListOrderValues();
         }
     }
 
     moveDown(textareaContainer) {
-        const nextTextareaContainer = textareaContainer.nextElementSibling;
-        if (nextTextareaContainer) {
-            textareaContainer.parentNode.insertBefore(nextTextareaContainer, textareaContainer);
+        const index = this.findIndexOfContainer(textareaContainer);
+        if (index < this.registros.length - 1) {
+            const nextIndex = index + 1;
+            this.swapContainers(index, nextIndex);
+            this.updateListOrderValues();
         }
+    }
+
+    findIndexOfContainer(textareaContainer) {
+        return Array.from(this.textareasContainer.children).indexOf(textareaContainer);
+    }
+
+    swapContainers(indexA, indexB) {
+        const temp = this.registros[indexA];
+        this.registros[indexA] = this.registros[indexB];
+        this.registros[indexB] = temp;
+
+        const containerA = this.textareasContainer.children[indexA];
+        const containerB = this.textareasContainer.children[indexB];
+        this.textareasContainer.insertBefore(containerA, containerB);
+    }
+
+    updateListOrderValues() {
+        this.registros.forEach((registro, index) => {
+            registro.list_order = index + 1;
+        });
     }
 
     enviarDatosALaAPI(formData) {
@@ -196,17 +212,6 @@ class FormManager {
         .catch(error => {
             console.error('Error al enviar los datos a la API:', error);
         });
-    }
-
-        handleFormSubmit(event) {
-        event.preventDefault();
-        console.log('Se hizo clic en el botón');
-
-  for (const formData of this.registros) {
-            this.enviarDatosALaAPI(formData);
-        }
-
-
     }
 }
 
