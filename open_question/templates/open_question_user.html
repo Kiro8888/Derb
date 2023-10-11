@@ -1,0 +1,29 @@
+{% extends 'gentelella/base.html' %}
+{% load static %}
+
+{% block stylesheets %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+
+{% endblock stylesheets %}
+{% block content %}
+<div class="form-builder">
+   <div class="form-preview" id="form-preview" droppable="true">
+    <h2>Formulario</h2>
+    <div id="formulario-user">
+        <div id="textareas-container">
+        </div>
+    </div>
+         <div id="form-submit-container">
+            <button id="form_submit" type="submit">Send Form</button>
+        </div>
+</div>
+    </div>
+
+
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'js/user.js' %}"></script>
+{% endblock %}

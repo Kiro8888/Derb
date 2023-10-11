@@ -13,16 +13,6 @@ class ResponseSerializer(serializers.ModelSerializer):
 
 
 
-class CategorySerializer(serializers.Serializer):
-    title = serializers.CharField(required=True)
-    description = serializers.CharField(required=False)
-    placeholder = serializers.CharField(required=False)
-    help = serializers.CharField(required=False)
-    list_order = serializers.IntegerField(default=0)
-
-
-
-
 
 
 

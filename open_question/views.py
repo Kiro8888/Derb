@@ -13,6 +13,9 @@ def open_question_list(request):
 def form(request):
     return render(request, 'form.html')
 
+def user_response(request):
+    return render(request, 'open_question_user.html')
+
 
 def save_data_to_json(data, filename):
     with open(filename, 'w') as json_file:
