@@ -10,6 +10,9 @@ function cargarPreguntas() {
             return response.json();
         })
         .then(data => {
+            // Ordena el arreglo 'data' por el campo 'list_order'
+            data.sort((a, b) => a.list_order - b.list_order);
+
             const textareasContainer = document.getElementById('textareas-container');
 
             data.forEach(pregunta => {
@@ -52,6 +55,7 @@ function cargarPreguntas() {
         })
         .catch(error => console.error('Error al cargar las preguntas:', error));
 }
+
 
 function enviarDatosALaAPIRespuestas() {
     const textareas = document.querySelectorAll('#textareas-container textarea');

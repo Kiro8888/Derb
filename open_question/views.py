@@ -35,7 +35,7 @@ def load_data_from_json(filename):
 
 
 def save_model_data(request):
-    data_to_save = list(OpenQuestion.objects.values())
+    data_to_save = list(Response.objects.values())
     save_data_to_json(data_to_save, 'datos.json')
     return JsonResponse({'message': 'Datos guardados en JSON'})
 

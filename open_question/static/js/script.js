@@ -1,5 +1,6 @@
 class FormManager {
     constructor() {
+        this.commonIdentifier = 1;
         this.formPreview = document.getElementById('form-preview');
         this.customFormContainer = document.getElementById('custom-form-container');
         this.textareasContainer = document.getElementById('textareas-container');
@@ -27,7 +28,11 @@ class FormManager {
         // Ordenar los registros según el campo list_order
         this.registros.sort((a, b) => a.list_order - b.list_order);
 
+        // Obtener un identificador único para esta solicitud
+        const uniqueIdentifier = this.commonIdentifier++;
+
         for (const formData of this.registros) {
+            formData.identifier = uniqueIdentifier;
             this.enviarDatosALaAPI(formData);
         }
     }
@@ -195,6 +200,10 @@ class FormManager {
     }
 
     enviarDatosALaAPI(formData) {
+     const commonIdentifier = 1; // Establece el identificador común que deseas asignar a todas las preguntas
+
+    // Agrega el campo 'identifier' al formData
+    formData.identifier = commonIdentifier;
         fetch('/api/open-questions/', {
             method: 'POST',
             headers: {
