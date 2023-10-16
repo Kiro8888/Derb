@@ -1,7 +1,12 @@
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 import json
-from open_question.models import OpenQuestion
+
+from django.views.decorators.csrf import csrf_exempt
+
+from open_question.models import OpenQuestion, Response
+
+
 
 # Create your views here.
 def mi_vista(request):
@@ -15,6 +20,7 @@ def form(request):
 
 def user_response(request):
     return render(request, 'open_question_user.html')
+
 
 
 def save_data_to_json(data, filename):

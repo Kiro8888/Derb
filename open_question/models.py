@@ -26,6 +26,7 @@ class Response(models.Model):
     response = models.TextField(blank=True, null=True)
     questions = models.OneToOneField(OpenQuestion, on_delete=models.CASCADE)
 
+
     def __str__(self):
         return self.response
 

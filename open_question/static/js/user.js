@@ -3,7 +3,12 @@ const formSubmitButton = document.getElementById('form_submit');
 // Función para cargar preguntas desde la API
 function cargarPreguntas() {
     fetch('/api/open-questions/')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('No se pudo cargar la lista de preguntas.');
+            }
+            return response.json();
+        })
         .then(data => {
             const textareasContainer = document.getElementById('textareas-container');
 
@@ -33,7 +38,7 @@ function cargarPreguntas() {
                 const downButton = document.createElement('button');
                 downButton.textContent = 'Bajar';
                 downButton.addEventListener('click', () => {
-                    this.moveDown(preguntaDiv);
+                    // Agrega aquí la lógica para mover la pregunta hacia abajo
                 });
 
                 // Agregar elementos al contenedor
@@ -45,27 +50,25 @@ function cargarPreguntas() {
                 textareasContainer.appendChild(preguntaDiv);
             });
         })
-        .catch(error => console.error('Error al cargar las preguntas', error));
+        .catch(error => console.error('Error al cargar las preguntas:', error));
 }
 
-
 function enviarDatosALaAPIRespuestas() {
-    const datosRespuestas = []; // Asegúrate de que datosRespuestas sea un array vacío
+    const datosRespuestas = {};
 
-    // Obtén todos los textarea en el contenedor de textareas
     const textareas = document.querySelectorAll('#textareas-container textarea');
 
-    // Recorre todos los textarea y recopila la información
-    textareas.forEach((textarea, index) => {
-        const preguntaID = textarea.getAttribute('data-question-id'); // Obtener el ID de la pregunta
-        const respuesta = {
-            response: textarea.value,
-            questions: preguntaID
+    textareas.forEach((textarea) => {
+        const preguntaID = +textarea.getAttribute('data-question-id');
+
+        datosRespuestas[preguntaID] = {
+            "response": textarea.value,
+            "questions": preguntaID
         };
-        datosRespuestas.push(respuesta);
     });
 
-    // Enviar los datos a tu API de respuestas
+    console.log('Datos a enviar:', JSON.stringify(datosRespuestas));
+
     fetch('/api/response-questions/', {
         method: 'POST',
         headers: {
@@ -77,23 +80,18 @@ function enviarDatosALaAPIRespuestas() {
         if (response.ok) {
             console.log('Datos enviados con éxito a la API de respuestas');
         } else {
-            console.error('Error al enviar los datos a la API de respuestas');
+            throw new Error('Error al enviar los datos a la API de respuestas.');
         }
     })
-    .catch(error => {
-        console.error('Error al enviar los datos a la API de respuestas:', error);
-    });
+    .catch(error => console.error(error.message));
 }
 
 
-// Agrega un evento de clic al botón
-formSubmitButton.addEventListener('click', function (event) {
-    event.preventDefault(); // Previene la recarga de la página
-   console.log('HOL')
 
-       enviarDatosALaAPIRespuestas();
+
+formSubmitButton.addEventListener('click', function (event) {
+    event.preventDefault();
+    enviarDatosALaAPIRespuestas();
 });
 
-
-// Llamar a la función para cargar preguntas cuando la página se carga
 window.addEventListener('load', cargarPreguntas);

@@ -19,7 +19,10 @@ urlpatterns = [
     path('save-data/', save_model_data, name='save-data'),
     path('load-data/', load_model_data, name='load-data'),
     path('open_list/', open_question_list, name='open_question_list'),
-    path('response/', user_response, name='user_response')
+    path('response/', user_response, name='user_response'),
+
+
+
 
 ]
 
