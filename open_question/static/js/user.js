@@ -54,40 +54,36 @@ function cargarPreguntas() {
 }
 
 function enviarDatosALaAPIRespuestas() {
-    const datosRespuestas = {};
-
     const textareas = document.querySelectorAll('#textareas-container textarea');
 
     textareas.forEach((textarea) => {
         const preguntaID = +textarea.getAttribute('data-question-id');
+        const respuesta = textarea.value;
 
-        datosRespuestas[preguntaID] = {
-            "response": textarea.value,
-            "questions": preguntaID
+        // Crear un objeto para la respuesta actual
+        const respuestaActual = {
+            "questions": preguntaID,
+            "response": respuesta
         };
+
+        // Enviar la respuesta actual a la API
+        fetch('/api/response-questions/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(respuestaActual)
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Datos enviados con éxito a la API de respuestas');
+            } else {
+                throw new Error('Error al enviar los datos a la API de respuestas.');
+            }
+        })
+        .catch(error => console.error(error.message));
     });
-
-    console.log('Datos a enviar:', JSON.stringify(datosRespuestas));
-
-    fetch('/api/response-questions/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(datosRespuestas)
-    })
-    .then(response => {
-        if (response.ok) {
-            console.log('Datos enviados con éxito a la API de respuestas');
-        } else {
-            throw new Error('Error al enviar los datos a la API de respuestas.');
-        }
-    })
-    .catch(error => console.error(error.message));
 }
-
-
-
 
 formSubmitButton.addEventListener('click', function (event) {
     event.preventDefault();
