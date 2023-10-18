@@ -7,9 +7,6 @@ class OpenQuestion(models.Model):
     list_order = models.IntegerField(default=0, editable=True, blank=True)
 
 
-
-
-
     def __str__(self):
         return self.title
 
@@ -30,5 +27,15 @@ class Response(models.Model):
 
     def __str__(self):
         return self.response
+
+
+class Form(models.Model):
+    title_form = models.CharField(max_length=255)
+    title_description = models.TextField(blank=True, null=True)
+    questions_form = models.ManyToManyField(OpenQuestion)
+
+    def __str__(self):
+        return self.title_form
+
 
 

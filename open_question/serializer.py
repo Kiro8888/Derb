@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import OpenQuestion, Response
+from .models import OpenQuestion, Response, Form
 
 class OpenQuestionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -8,7 +8,7 @@ class OpenQuestionSerializer(serializers.ModelSerializer):
 
 class ResponseSerializer(serializers.ModelSerializer):
     questions = serializers.PrimaryKeyRelatedField(queryset=OpenQuestion.objects.all(),
-                                                   required=True)  # Añade 'required=True'
+                                                   required=True)
 
     class Meta:
         model = Response
@@ -16,6 +16,8 @@ class ResponseSerializer(serializers.ModelSerializer):
 
 
 
+class FormSerializer(serializers.ModelSerializer):
 
-
-
+    class Meta:
+        model = Form
+        fields = '__all__'
