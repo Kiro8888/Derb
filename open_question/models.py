@@ -6,7 +6,7 @@ class OpenQuestion(models.Model):
     help = models.CharField(max_length=255, blank=True, null=True)
     list_order = models.IntegerField(default=0, editable=True, blank=True)
 
-    identifier = models.IntegerField(default=1, editable=False)
+
 
 
 
@@ -14,12 +14,6 @@ class OpenQuestion(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-        if not self.identifier:
-            last_item = OpenQuestion.objects.order_by('-identifier').first()
-            if last_item:
-                self.identifier = last_item.identifier + 1
-            else:
-                self.identifier = 1
         if not self.list_order:
             last_item = OpenQuestion.objects.last()
             if last_item:
