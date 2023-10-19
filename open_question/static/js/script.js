@@ -22,17 +22,19 @@ class FormManager {
         });
     }
 
-    handleFormSubmit(event) {
-        event.preventDefault();
+   handleFormSubmit(event) {
+    event.preventDefault();
 
-        // Ordenar los registros según el campo list_order
-        this.registros.sort((a, b) => a.list_order - b.list_order);
+    // Filtrar los registros que no han sido eliminados
+    const registrosNoEliminados = this.registros.filter(formData => formData !== null);
 
-        for (const formData of this.registros) {
-            this.enviarDatosALaAPI(formData);
-        }
+    // Ordenar los registros según el campo list_order
+    registrosNoEliminados.sort((a, b) => a.list_order - b.list_order);
+
+    for (const formData of registrosNoEliminados) {
+        this.enviarDatosALaAPI(formData);
     }
-
+}
     handleDragStart(e) {
         e.dataTransfer.setData('text/plain', 'openQuestion');
     }
@@ -130,6 +132,13 @@ class FormManager {
         const descriptionDiv = document.createElement('div');
         descriptionDiv.textContent = formData.description;
 
+         // Botón de eliminar
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Eliminar';
+    deleteButton.addEventListener('click', () => {
+        this.deleteTextareaContainer(textareaContainer);
+    });
+
         /////////////BOTON DE SUBIR Y BAJAR
         const upButton = document.createElement('button');
         upButton.textContent = 'Subir';
@@ -148,6 +157,7 @@ class FormManager {
         textareaContainer.appendChild(titleDiv);
         textareaContainer.appendChild(textareaElement);
         textareaContainer.appendChild(descriptionDiv);
+          textareaContainer.appendChild(deleteButton); // Agregar el botón de eliminar
         textareaContainer.appendChild(upButton);
         textareaContainer.appendChild(downButton);
 
@@ -156,6 +166,25 @@ class FormManager {
 
         return textareaContainer;
     }
+
+ deleteTextareaContainer(textareaContainer) {
+    // Encuentra el índice del elemento a eliminar
+    const index = this.findIndexOfContainer(textareaContainer);
+
+    if (index !== -1) {
+        // Elimina el registro del array
+        this.registros.splice(index, 1);
+
+        // Elimina el elemento visual
+        this.textareasContainer.removeChild(textareaContainer);
+
+        // Actualiza los valores de list_order
+        this.updateListOrderValues();
+    }
+}
+
+
+
 
     moveUp(textareaContainer) {
         const index = this.findIndexOfContainer(textareaContainer);

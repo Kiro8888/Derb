@@ -1,0 +1,24 @@
+{% extends 'gentelella/base.html' %}
+{% load static %}
+
+{% block stylesheets %}
+    <link href="{% static 'css/form.css' %}" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block content %}
+<h1>Crea tu formulario personalizado</h1>
+<form action="" method="post">
+    {% csrf_token %}
+    <label for="title_form">Title:</label>
+    <input type="text" id="title_form" name="title_form" required>
+
+    <label for="title_description">Description:</label>
+    <textarea id="title_description" name="title_description" rows="4" required></textarea>
+
+    <input type="submit" value="Enviar">
+</form>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'js/create_form.js' %}"></script>
+{% endblock %}
