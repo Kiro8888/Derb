@@ -17,7 +17,7 @@ class ResponseSerializer(serializers.ModelSerializer):
 
 
 class FormSerializer(serializers.ModelSerializer):
-
+    title_form = serializers.CharField(required=False)
     class Meta:
         model = Form
         fields = '__all__'

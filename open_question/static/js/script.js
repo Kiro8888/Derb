@@ -20,21 +20,60 @@ class FormManager {
         this.miFormulario.addEventListener('click', (event) => {
             event.preventDefault(); // Evita la recarga de la página
         });
+
+          this.miFormulario.addEventListener('submit', this.handleFormSubmit.bind(this));
     }
 
-   handleFormSubmit(event) {
+async handleFormSubmit(event) {
     event.preventDefault();
 
-    // Filtrar los registros que no han sido eliminados
-    const registrosNoEliminados = this.registros.filter(formData => formData !== null);
+    const urlParts = window.location.pathname.split('/');
+    const formId = urlParts[urlParts.length - 2];
 
-    // Ordenar los registros según el campo list_order
-    registrosNoEliminados.sort((a, b) => a.list_order - b.list_order);
+    // Realizar una solicitud GET para obtener los id de las preguntas
+    try {
+        const response = await fetch('/api/open-questions/'); // Reemplaza `/api/questions/` con la URL correcta de tu API para obtener preguntas
+        if (!response.ok) {
+            throw new Error('No se pudo obtener la lista de preguntas');
+        }
+        const data = await response.json();
 
-    for (const formData of registrosNoEliminados) {
-        this.enviarDatosALaAPI(formData);
+        // Filtrar los registros que no han sido eliminados
+        const registrosNoEliminados = this.registros.filter(formData => formData !== null);
+
+        // Obtener las preguntas para actualizar el campo 'questions_form'
+        const preguntasActualizar = registrosNoEliminados.map(formData => {
+            const pregunta = data.find(item => item.title === formData.title);
+            if (pregunta) {
+                return pregunta.id;
+            }
+            return null;
+        });
+
+        // Construir el objeto con los datos para actualizar 'questions_form'
+        const datosActualizar = {
+            questions_form: preguntasActualizar
+        };
+
+        // Realizar la solicitud PUT a la URL del formulario
+        const putResponse = await fetch(`/api/form/${formId}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(datosActualizar)
+        });
+
+        if (putResponse.ok) {
+            console.log('Campo "questions_form" actualizado con éxito');
+        } else {
+            console.error('Error al actualizar el campo "questions_form"');
+        }
+    } catch (error) {
+        console.error('Error al obtener preguntas o al actualizar el formulario:', error);
     }
 }
+
     handleDragStart(e) {
         e.dataTransfer.setData('text/plain', 'openQuestion');
     }
@@ -82,6 +121,7 @@ class FormManager {
 
                 // Agregar el contenedor al contenedor de textareas
                 this.textareasContainer.appendChild(textareaContainer);
+                this.enviarDatosALaAPI(formData);
             });
 
             customForm.appendChild(titleInput);

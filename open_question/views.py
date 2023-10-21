@@ -20,7 +20,20 @@ def mi_vista(request):
     return render(request, 'home.html')
 
 
+def update_form(request, form_id):
+    if request.method == 'PUT':
+        # Accede al formulario con la ID capturada de la URL
+        try:
+            form = Form.objects.get(id=form_id)
+        except Form.DoesNotExist:
+            return JsonResponse({'error': 'El formulario no existe'}, status=404)
 
+        # Procesa la solicitud PUT, por ejemplo, actualiza los campos del formulario
+        # Asegúrate de manejar correctamente los datos que recibes en la solicitud PUT
+
+        return JsonResponse({'message': 'Formulario actualizado con éxito'}, status=200)
+    else:
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 
 
@@ -92,8 +105,4 @@ def form(request):
 
 def user_response(request):
     return render(request, 'open_question_user.html')
-
-
-
-
 
