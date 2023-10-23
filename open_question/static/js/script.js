@@ -10,6 +10,7 @@ class FormManager {
 
         // Declarar las variables como propiedades de la clase
         this.registros = [];
+        //this.loadQuestionsFromAPI();
 
         this.miFormulario.addEventListener('submit', this.handleFormSubmit.bind(this));
         this.openQuestionElement.addEventListener('dragstart', this.handleDragStart.bind(this));
@@ -23,6 +24,7 @@ class FormManager {
 
           this.miFormulario.addEventListener('submit', this.handleFormSubmit.bind(this));
     }
+
 
 async handleFormSubmit(event) {
     event.preventDefault();
@@ -178,6 +180,10 @@ async handleFormSubmit(event) {
     deleteButton.addEventListener('click', () => {
         this.deleteTextareaContainer(textareaContainer);
     });
+
+    deleteButton.addEventListener('click', () => {
+    this.deleteQuestion(formData.id, textareaContainer);
+});
 
         /////////////BOTON DE SUBIR Y BAJAR
         const upButton = document.createElement('button');
