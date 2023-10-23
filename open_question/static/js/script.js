@@ -29,11 +29,19 @@ class FormManager {
 async handleFormSubmit(event) {
     event.preventDefault();
 
-    const urlParts = window.location.pathname.split('/');
-    const formId = urlParts[urlParts.length - 2];
+
 
     // Realizar una solicitud GET para obtener los id de las preguntas
     try {
+         for (const formData of this.registros) {
+            this.enviarDatosALaAPI(formData);
+        }
+
+    const urlParts = window.location.pathname.split('/');
+    const formId = urlParts[urlParts.length - 2];
+
+
+
         const response = await fetch('/api/open-questions/'); // Reemplaza `/api/questions/` con la URL correcta de tu API para obtener preguntas
         if (!response.ok) {
             throw new Error('No se pudo obtener la lista de preguntas');
@@ -123,7 +131,7 @@ async handleFormSubmit(event) {
 
                 // Agregar el contenedor al contenedor de textareas
                 this.textareasContainer.appendChild(textareaContainer);
-                this.enviarDatosALaAPI(formData);
+                //this.enviarDatosALaAPI(formData);
             });
 
             customForm.appendChild(titleInput);
@@ -181,9 +189,17 @@ async handleFormSubmit(event) {
         this.deleteTextareaContainer(textareaContainer);
     });
 
-    deleteButton.addEventListener('click', () => {
+        deleteButton.addEventListener('click', () => {
     this.deleteQuestion(formData.id, textareaContainer);
 });
+////ACTUALIZAR
+const updateButton = document.createElement('button');
+updateButton.textContent = 'Actualizar';
+updateButton.addEventListener('click', () => {
+    this.updateFormData(formData);
+});
+
+
 
         /////////////BOTON DE SUBIR Y BAJAR
         const upButton = document.createElement('button');
@@ -203,7 +219,8 @@ async handleFormSubmit(event) {
         textareaContainer.appendChild(titleDiv);
         textareaContainer.appendChild(textareaElement);
         textareaContainer.appendChild(descriptionDiv);
-          textareaContainer.appendChild(deleteButton); // Agregar el botón de eliminar
+        textareaContainer.appendChild(deleteButton); // Agregar el botón de eliminar
+        textareaContainer.appendChild(updateButton);
         textareaContainer.appendChild(upButton);
         textareaContainer.appendChild(downButton);
 
@@ -212,6 +229,20 @@ async handleFormSubmit(event) {
 
         return textareaContainer;
     }
+updateFormData(formData) {
+    // Aquí puedes acceder a formData.title, formData.description, etc. para cargar los datos
+    const title = formData.title;
+    const description = formData.description;
+    const placeholder = formData.placeholder;
+    const help = formData.help;
+
+    // Luego, puedes asignar estos valores a los campos de entrada correspondientes
+    titleInput.value = title;
+    descriptionInput.value = description;
+    placeholderInput.value = placeholder;
+    helpInput.value = help;
+}
+
 
  deleteTextareaContainer(textareaContainer) {
     // Encuentra el índice del elemento a eliminar
