@@ -1,76 +1,99 @@
 const formSubmitButton = document.getElementById('form_submit');
+const formularioUser = document.getElementById('formulario-user');
+const urlParams = new URLSearchParams(window.location.search);
+const formId = urlParams.get('form_id');
 
-// Función para cargar preguntas desde la API
-function cargarPreguntas() {
-    fetch('/api/open-questions/')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('No se pudo cargar la lista de preguntas.');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Ordena el arreglo 'data' por el campo 'list_order'
-            data.sort((a, b) => a.list_order - b.list_order);
+    function loadform() {
+    const formId = window.location.pathname.split('/').filter(Boolean).pop();
 
-            const textareasContainer = document.getElementById('textareas-container');
+    if (formId) {
+        fetch(`/api/form/1/`)
+            .then(response => {
+                if (!response.ok) {
 
-            data.forEach(pregunta => {
-                const preguntaDiv = document.createElement('div');
-                preguntaDiv.className = 'pregunta';
+                }
+                return response.json();
+            })
+            .then(formulario => {
+                const textareasContainer = document.getElementById('textareas-container');
 
-                const tituloPregunta = document.createElement('h3');
-                tituloPregunta.textContent = pregunta.title;
 
-                const descripcionPregunta = document.createElement('p');
-                descripcionPregunta.textContent = pregunta.description;
+                const formDiv = document.createElement('div');
+                formDiv.className = 'formulario';
 
-                // Crear el textarea y asignar el ID de la pregunta como atributo de datos
-                const textareaElement = document.createElement('textarea');
-                textareaElement.placeholder = pregunta.placeholder;
-                textareaElement.style.width = '100%';
-                textareaElement.style.height = '200px';
+                const titleform = document.createElement('h2');
+                titleform.textContent = formulario.title_form;
 
-                // Asignar el ID de la pregunta como atributo de datos
-                textareaElement.setAttribute('data-question-id', pregunta.id);
+                const descriptionform = document.createElement('p');
+                descriptionform.textContent = formulario.title_description;
 
-                // Descripción
-                const descriptionDiv = document.createElement('div');
-                descriptionDiv.textContent = pregunta.description;
 
-                const downButton = document.createElement('button');
-                downButton.textContent = 'Bajar';
-                downButton.addEventListener('click', () => {
-                    // Agrega aquí la lógica para mover la pregunta hacia abajo
+                formDiv.appendChild(titleform);
+                formDiv.appendChild(descriptionform);
+
+
+                formulario.questions_form.forEach(preguntaId => {
+
+                    fetch(`/api/open-questions/${preguntaId}/`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('No se pudo cargar la pregunta.');
+                            }
+                            return response.json();
+                        })
+                        .then(pregunta => {
+                            const preguntaDiv = document.createElement('div');
+                            preguntaDiv.className = 'pregunta';
+
+                            const tituloPregunta = document.createElement('h3');
+                            tituloPregunta.textContent = pregunta.title;
+
+                            const descripcionPregunta = document.createElement('p');
+                            descripcionPregunta.textContent = pregunta.description;
+
+
+                            const textareaElement = document.createElement('textarea');
+                            textareaElement.placeholder = pregunta.placeholder;
+                            textareaElement.style.width = '100%';
+                            textareaElement.style.height = '200px';
+
+
+                            textareaElement.setAttribute('data-question-id', pregunta.id);
+                            loadform
+
+                            preguntaDiv.appendChild(tituloPregunta);
+                            preguntaDiv.appendChild(descripcionPregunta);
+                            preguntaDiv.appendChild(textareaElement);
+
+
+                            formDiv.appendChild(preguntaDiv);
+                        })
+                        .catch(error => console.error('Error al cargar la pregunta:', error));
                 });
 
-                // Agregar elementos al contenedor
-                preguntaDiv.appendChild(tituloPregunta);
-                preguntaDiv.appendChild(descripcionPregunta);
-                preguntaDiv.appendChild(textareaElement);
-                preguntaDiv.appendChild(descriptionDiv);
-
-                textareasContainer.appendChild(preguntaDiv);
-            });
-        })
-        .catch(error => console.error('Error al cargar las preguntas:', error));
+                textareasContainer.appendChild(formDiv);
+            })
+            .catch(error => console.error('Error al cargar el formulario:', error));
+    } else {
+        console.error('Formulario ID no proporcionado en la URL.');
+    }
 }
 
 
-function enviarDatosALaAPIRespuestas() {
+function sendresponse() {
     const textareas = document.querySelectorAll('#textareas-container textarea');
 
     textareas.forEach((textarea) => {
         const preguntaID = +textarea.getAttribute('data-question-id');
         const respuesta = textarea.value;
 
-        // Crear un objeto para la respuesta actual
+
         const respuestaActual = {
             "questions": preguntaID,
             "response": respuesta
         };
 
-        // Enviar la respuesta actual a la API
+
         fetch('/api/response-questions/', {
             method: 'POST',
             headers: {
@@ -89,9 +112,12 @@ function enviarDatosALaAPIRespuestas() {
     });
 }
 
+
 formSubmitButton.addEventListener('click', function (event) {
     event.preventDefault();
-    enviarDatosALaAPIRespuestas();
+    sendresponse();
 });
 
-window.addEventListener('load', cargarPreguntas);
+window.addEventListener('load', () => {
+    loadform(formId);
+});

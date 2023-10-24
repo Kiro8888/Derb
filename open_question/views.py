@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpResponse
 import json
 
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.generics import get_object_or_404
 
 from open_question.models import OpenQuestion, Response
 
@@ -88,6 +89,12 @@ def form(request):
 
     return render(request, 'create_form.html',{'nuevo_formulario': nuevo_formulario})
 
-def user_response(request):
-    return render(request, 'open_question_user.html')
-
+def user_response(request, form_id=None):
+    print("Form ID:", form_id)  # Agrega esta línea para depuración
+    if form_id is not None:
+        formulario = get_object_or_404(Form, pk=form_id)
+        print("Formulario encontrado:", formulario)  # Agrega esta línea para depuración
+        return render(request, 'open_question_user.html', {'formulario': formulario})
+    else:
+        print("Formulario ID no proporcionado")  # Agrega esta línea para depuración
+        return render(request, 'open_question_user.html')

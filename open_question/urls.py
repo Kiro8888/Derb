@@ -17,7 +17,9 @@ urlpatterns = [
     path('form/', form, name='form'),
     path('api/', include(router.urls)),
     path('open_list/<int:form_id>/', open_question_list, name='open_list'),
-    path('response/', user_response, name='user_response'),
+    path('response/<int:form_id>/', user_response, name='user_response'),
+
+
     path('create/', form, name='create'),
 
 ]

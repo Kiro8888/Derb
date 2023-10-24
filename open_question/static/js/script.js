@@ -4,80 +4,70 @@ class FormManager {
         this.formPreview = document.getElementById('form-preview');
         this.customFormContainer = document.getElementById('custom-form-container');
         this.textareasContainer = document.getElementById('textareas-container');
-        this.miFormulario = document.getElementById('miFormulario');
-        this.btn_submit = document.getElementById('form_submit');
+        this.myForm = document.getElementById('miFormulario');
+        this.btnSubmit = document.getElementById('form_submit');
         this.openQuestionElement = document.getElementById('openQuestion');
-
-
-        this.registros = [];
-
-
-        this.miFormulario.addEventListener('submit', this.handleFormSubmit.bind(this));
+        this.records = [];
+        this.myForm.addEventListener('submit', this.handleFormSubmit.bind(this));
         this.openQuestionElement.addEventListener('dragstart', this.handleDragStart.bind(this));
         this.formPreview.addEventListener('dragover', this.handleDragOver.bind(this));
         this.formPreview.addEventListener('drop', this.handleDrop.bind(this));
-        this.btn_submit.addEventListener('click', this.handleFormSubmit.bind(this));
+        this.btnSubmit.addEventListener('click', this.handleFormSubmit.bind(this));
 
-        this.miFormulario.addEventListener('click', (event) => {
+        this.myForm.addEventListener('click', (event) => {
             event.preventDefault();
         });
 
-          this.miFormulario.addEventListener('submit', this.handleFormSubmit.bind(this));
+        this.myForm.addEventListener('submit', this.handleFormSubmit.bind(this));
     }
 
+    async handleFormSubmit(event) {
+        event.preventDefault();
 
-async handleFormSubmit(event) {
-    event.preventDefault();
-
-
-
-
-    try {
-         for (const formData of this.registros) {
-            this.enviarDatosALaAPI(formData );
-        }
-
-    const urlParts = window.location.pathname.split('/');
-    const formId = urlParts[urlParts.length - 2];
-
-
-
-        const response = await fetch('/api/open-questions/');
-        if (!response.ok) {
-            throw new Error('No se pudo obtener la lista de preguntas');
-        }
-        const data = await response.json();
-
-        const registrosNoEliminados = this.registros.filter(formData => formData !== null);
-        const preguntasActualizar = registrosNoEliminados.map(formData => {
-            const pregunta = data.find(item => item.title === formData.title);
-            if (pregunta) {
-                return pregunta.id;
+        try {
+            for (const formData of this.records) {
+                this.sendDataToAPI(formData);
             }
-            return null;
-        });
 
-        const datosActualizar = {
-            questions_form: preguntasActualizar
-        };
+            const urlParts = window.location.pathname.split('/');
+            const formId = urlParts[urlParts.length - 2];
 
-        const putResponse = await fetch(`/api/form/${formId}/`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(datosActualizar)
-        });
+            const response = await fetch('/api/open-questions/');
+            if (!response.ok) {
+                throw new Error('Failed to fetch the list of questions');
+            }
+            const data = await response.json();
 
-        if (putResponse.ok) {
-            console.log('Campo "questions_form" actualizado con éxito');
-        } else {
-            console.error('Error al actualizar el campo "questions_form"');
+            const nonDeletedRecords = this.records.filter(formData => formData !== null);
+            const questionsToUpdate = nonDeletedRecords.map(formData => {
+                const question = data.find(item => item.title === formData.title);
+                if (question) {
+                    return question.id;
+                }
+                return null;
+            });
+
+            const dataToUpdate = {
+                questions_form: questionsToUpdate
+            };
+
+            const putResponse = await fetch(`/api/form/${formId}/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataToUpdate)
+            });
+
+            if (putResponse.ok) {
+                console.log('Field "questions_form" updated successfully');
+            } else {
+                console.error('Failed to update the "questions_form" field');
+            }
+        } catch (error) {
+            console.error('Error fetching questions or updating the form:', error);
         }
-    } catch (error) {
-        console.error('Error al obtener preguntas o al actualizar el formulario:', error);
     }
-}
 
     handleDragStart(e) {
         e.dataTransfer.setData('text/plain', 'openQuestion');
@@ -99,7 +89,7 @@ async handleFormSubmit(event) {
             const descriptionInput = this.createInput('Description');
             const placeholderInput = this.createInput('Placeholder');
             const helpInput = this.createInput('Help');
-            const saveButton = this.createButton('Guardar');
+            const saveButton = this.createButton('Save');
 
             saveButton.addEventListener('click', () => {
                 const formData = {
@@ -109,19 +99,16 @@ async handleFormSubmit(event) {
                     help: helpInput.value
                 };
 
-                formData.list_order = this.registros.length + 1;
-                this.registros.push(formData);
+                formData.list_order = this.records.length + 1;
+                this.records.push(formData);
 
                 console.log(formData);
 
                 this.clearFields(titleInput, descriptionInput, placeholderInput, helpInput, saveButton);
 
-
                 const textareaContainer = this.createTextareaContainer(formData);
 
-
                 this.textareasContainer.appendChild(textareaContainer);
-
             });
 
             customForm.appendChild(titleInput);
@@ -165,38 +152,32 @@ async handleFormSubmit(event) {
         textareaElement.style.width = '100%';
         textareaElement.style.height = '200px';
 
-
         const descriptionDiv = document.createElement('div');
         descriptionDiv.textContent = formData.description;
 
-    const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'Eliminar';
-    deleteButton.addEventListener('click', () => {
-        this.deleteTextareaContainer(textareaContainer);
-    });
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', () => {
+            this.deleteTextareaContainer(textareaContainer);
+        });
 
-
-
-const updateButton = document.createElement('button');
-updateButton.textContent = 'Actualizar';
-updateButton.addEventListener('click', () => {
-    this.editQuestion(formData, textareaContainer);
-});
-
+        const updateButton = document.createElement('button');
+        updateButton.textContent = 'Update';
+        updateButton.addEventListener('click', () => {
+            this.editQuestion(formData, textareaContainer);
+        });
 
         const upButton = document.createElement('button');
-        upButton.textContent = 'Subir';
+        upButton.textContent = 'Move Up';
         upButton.addEventListener('click', () => {
             this.moveUp(textareaContainer);
         });
 
         const downButton = document.createElement('button');
-        downButton.textContent = 'Bajar';
+        downButton.textContent = 'Move Down';
         downButton.addEventListener('click', () => {
             this.moveDown(textareaContainer);
         });
-
-
 
         textareaContainer.appendChild(titleDiv);
         textareaContainer.appendChild(textareaElement);
@@ -206,75 +187,61 @@ updateButton.addEventListener('click', () => {
         textareaContainer.appendChild(upButton);
         textareaContainer.appendChild(downButton);
 
-
         this.textareasContainer.appendChild(textareaContainer);
 
         return textareaContainer;
     }
 
-editQuestion(formData, textareaContainer) {
-
-    const updateButton = textareaContainer.querySelector('button');
-    updateButton.disabled = true;
-
-
-    const textareaElement = textareaContainer.querySelector('textarea');
-    const titleInput = this.createInput('Title');
-    titleInput.value = formData.title;
-    const descriptionInput = this.createInput('Description');
-    descriptionInput.value = formData.description;
-    const placeholderInput = this.createInput('Placeholder');
-    placeholderInput.value = formData.placeholder;
-    const helpInput = this.createInput('Help');
-    helpInput.value = formData.help;
-
-
-    const currentInputs = textareaContainer.querySelectorAll('input');
-    currentInputs.forEach(input => input.remove());
-    textareaContainer.insertBefore(titleInput, textareaElement);
-    textareaContainer.insertBefore(descriptionInput, textareaElement);
-    textareaContainer.insertBefore(placeholderInput, textareaElement);
-    textareaContainer.insertBefore(helpInput, textareaElement);
-
-    const saveButton = this.createButton('Guardar');
-    textareaContainer.insertBefore(saveButton, textareaElement);
-
-    saveButton.addEventListener('click', () => {
-
-        formData.title = titleInput.value;
-        formData.description = descriptionInput.value;
-        formData.placeholder = placeholderInput.value;
-        formData.help = helpInput.value;
-
-
-        textareaElement.value = formData.description;
-
-
-        titleInput.remove();
-        descriptionInput.remove();
-        placeholderInput.remove();
-        helpInput.remove();
-        saveButton.remove();
+    editQuestion(formData, textareaContainer) {
+        const updateButton = textareaContainer.querySelector('button');
         updateButton.disabled = true;
-    });
-}
 
+        const textareaElement = textareaContainer.querySelector('textarea');
+        const titleInput = this.createInput('Title');
+        titleInput.value = formData.title;
+        const descriptionInput = this.createInput('Description');
+        descriptionInput.value = formData.description;
+        const placeholderInput = this.createInput('Placeholder');
+        placeholderInput.value = formData.placeholder;
+        const helpInput = this.createInput('Help');
+        helpInput.value = formData.help;
 
- deleteTextareaContainer(textareaContainer) {
+        const currentInputs = textareaContainer.querySelectorAll('input');
+        currentInputs.forEach(input => input.remove());
+        textareaContainer.insertBefore(titleInput, textareaElement);
+        textareaContainer.insertBefore(descriptionInput, textareaElement);
+        textareaContainer.insertBefore(placeholderInput, textareaElement);
+        textareaContainer.insertBefore(helpInput, textareaElement);
 
-    const index = this.findIndexOfContainer(textareaContainer);
+        const saveButton = this.createButton('Save');
+        textareaContainer.insertBefore(saveButton, textareaElement);
 
-    if (index !== -1) {
+        saveButton.addEventListener('click', () => {
+            formData.title = titleInput.value;
+            formData.description = descriptionInput.value;
+            formData.placeholder = placeholderInput.value;
+            formData.help = helpInput.value;
 
-        this.registros.splice(index, 1);
+            textareaElement.value = formData.description;
 
-
-        this.textareasContainer.removeChild(textareaContainer);
-
-   
-        this.updateListOrderValues();
+            titleInput.remove();
+            descriptionInput.remove();
+            placeholderInput.remove();
+            helpInput.remove();
+            saveButton.remove();
+            updateButton.disabled = true;
+        });
     }
-}
+
+    deleteTextareaContainer(textareaContainer) {
+        const index = this.findIndexOfContainer(textareaContainer);
+
+        if (index !== -1) {
+            this.records.splice(index, 1);
+            this.textareasContainer.removeChild(textareaContainer);
+            this.updateListOrderValues();
+        }
+    }
 
     moveUp(textareaContainer) {
         const index = this.findIndexOfContainer(textareaContainer);
@@ -287,7 +254,7 @@ editQuestion(formData, textareaContainer) {
 
     moveDown(textareaContainer) {
         const index = this.findIndexOfContainer(textareaContainer);
-        if (index < this.registros.length - 1) {
+        if (index < this.records.length - 1) {
             const nextIndex = index + 1;
             this.swapContainers(index, nextIndex);
             this.updateListOrderValues();
@@ -299,9 +266,9 @@ editQuestion(formData, textareaContainer) {
     }
 
     swapContainers(indexA, indexB) {
-        const temp = this.registros[indexA];
-        this.registros[indexA] = this.registros[indexB];
-        this.registros[indexB] = temp;
+        const temp = this.records[indexA];
+        this.records[indexA] = this.records[indexB];
+        this.records[indexB] = temp;
 
         const containerA = this.textareasContainer.children[indexA];
         const containerB = this.textareasContainer.children[indexB];
@@ -309,12 +276,12 @@ editQuestion(formData, textareaContainer) {
     }
 
     updateListOrderValues() {
-        this.registros.forEach((registro, index) => {
-            registro.list_order = index + 1;
+        this.records.forEach((record, index) => {
+            record.list_order = index + 1;
         });
     }
 
-    enviarDatosALaAPI(formData) {
+    sendDataToAPI(formData) {
         fetch('/api/open-questions/', {
             method: 'POST',
             headers: {
@@ -324,13 +291,13 @@ editQuestion(formData, textareaContainer) {
         })
         .then(response => {
             if (response.ok) {
-                console.log('Datos enviados con éxito a la API');
+                console.log('Data sent successfully to the API');
             } else {
-                console.error('Error al enviar los datos a la API');
+                console.error('Failed to send data to the API');
             }
         })
         .catch(error => {
-            console.error('Error al enviar los datos a la API:', error);
+            console.error('Error sending data to the API:', error);
         });
     }
 }
