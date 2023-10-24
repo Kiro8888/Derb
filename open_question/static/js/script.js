@@ -8,9 +8,9 @@ class FormManager {
         this.btn_submit = document.getElementById('form_submit');
         this.openQuestionElement = document.getElementById('openQuestion');
 
-        // Declarar las variables como propiedades de la clase
+
         this.registros = [];
-        //this.loadQuestionsFromAPI();
+
 
         this.miFormulario.addEventListener('submit', this.handleFormSubmit.bind(this));
         this.openQuestionElement.addEventListener('dragstart', this.handleDragStart.bind(this));
@@ -19,7 +19,7 @@ class FormManager {
         this.btn_submit.addEventListener('click', this.handleFormSubmit.bind(this));
 
         this.miFormulario.addEventListener('click', (event) => {
-            event.preventDefault(); // Evita la recarga de la página
+            event.preventDefault();
         });
 
           this.miFormulario.addEventListener('submit', this.handleFormSubmit.bind(this));
@@ -31,10 +31,10 @@ async handleFormSubmit(event) {
 
 
 
-    // Realizar una solicitud GET para obtener los id de las preguntas
+
     try {
          for (const formData of this.registros) {
-            this.enviarDatosALaAPI(formData);
+            this.enviarDatosALaAPI(formData );
         }
 
     const urlParts = window.location.pathname.split('/');
@@ -42,16 +42,13 @@ async handleFormSubmit(event) {
 
 
 
-        const response = await fetch('/api/open-questions/'); // Reemplaza `/api/questions/` con la URL correcta de tu API para obtener preguntas
+        const response = await fetch('/api/open-questions/');
         if (!response.ok) {
             throw new Error('No se pudo obtener la lista de preguntas');
         }
         const data = await response.json();
 
-        // Filtrar los registros que no han sido eliminados
         const registrosNoEliminados = this.registros.filter(formData => formData !== null);
-
-        // Obtener las preguntas para actualizar el campo 'questions_form'
         const preguntasActualizar = registrosNoEliminados.map(formData => {
             const pregunta = data.find(item => item.title === formData.title);
             if (pregunta) {
@@ -60,12 +57,10 @@ async handleFormSubmit(event) {
             return null;
         });
 
-        // Construir el objeto con los datos para actualizar 'questions_form'
         const datosActualizar = {
             questions_form: preguntasActualizar
         };
 
-        // Realizar la solicitud PUT a la URL del formulario
         const putResponse = await fetch(`/api/form/${formId}/`, {
             method: 'PUT',
             headers: {
@@ -97,7 +92,6 @@ async handleFormSubmit(event) {
         const itemType = e.dataTransfer.getData('text/plain');
 
         if (itemType === 'openQuestion') {
-            // Crear un formulario personalizado y agregarlo a 'customFormContainer'
             const customForm = document.createElement('div');
             customForm.className = 'custom-form';
 
@@ -115,23 +109,19 @@ async handleFormSubmit(event) {
                     help: helpInput.value
                 };
 
-                // Agregar el campo list_order al formData
-                formData.list_order = this.registros.length + 1; // Valor único para cada pregunta
-
-                // Agregar el formData al array de registros
+                formData.list_order = this.registros.length + 1;
                 this.registros.push(formData);
 
                 console.log(formData);
 
-                // LIMPIAR CAMPOS INPUT DEL SETTINGS
                 this.clearFields(titleInput, descriptionInput, placeholderInput, helpInput, saveButton);
 
-                // Crear un nuevo div para contener el título y la descripción
+
                 const textareaContainer = this.createTextareaContainer(formData);
 
-                // Agregar el contenedor al contenedor de textareas
+
                 this.textareasContainer.appendChild(textareaContainer);
-                //this.enviarDatosALaAPI(formData);
+
             });
 
             customForm.appendChild(titleInput);
@@ -169,39 +159,31 @@ async handleFormSubmit(event) {
         const titleDiv = document.createElement('div');
         titleDiv.textContent = formData.title;
 
-        // Crear textarea y otros elementos aquí
-
-        // Textarea
         const textareaElement = document.createElement('textarea');
         textareaElement.placeholder = formData.placeholder;
         textareaElement.setAttribute('data-description', formData.description);
         textareaElement.style.width = '100%';
         textareaElement.style.height = '200px';
 
-        // Descripción
+
         const descriptionDiv = document.createElement('div');
         descriptionDiv.textContent = formData.description;
 
-         // Botón de eliminar
     const deleteButton = document.createElement('button');
     deleteButton.textContent = 'Eliminar';
     deleteButton.addEventListener('click', () => {
         this.deleteTextareaContainer(textareaContainer);
     });
 
-        deleteButton.addEventListener('click', () => {
-    this.deleteQuestion(formData.id, textareaContainer);
-});
-////ACTUALIZAR
+
+
 const updateButton = document.createElement('button');
 updateButton.textContent = 'Actualizar';
 updateButton.addEventListener('click', () => {
-    this.updateFormData(formData);
+    this.editQuestion(formData, textareaContainer);
 });
 
 
-
-        /////////////BOTON DE SUBIR Y BAJAR
         const upButton = document.createElement('button');
         upButton.textContent = 'Subir';
         upButton.addEventListener('click', () => {
@@ -213,55 +195,86 @@ updateButton.addEventListener('click', () => {
         downButton.addEventListener('click', () => {
             this.moveDown(textareaContainer);
         });
-        //////////////////////////////////
 
-        // Agregar elementos al contenedor
+
+
         textareaContainer.appendChild(titleDiv);
         textareaContainer.appendChild(textareaElement);
         textareaContainer.appendChild(descriptionDiv);
-        textareaContainer.appendChild(deleteButton); // Agregar el botón de eliminar
+        textareaContainer.appendChild(deleteButton);
         textareaContainer.appendChild(updateButton);
         textareaContainer.appendChild(upButton);
         textareaContainer.appendChild(downButton);
 
-        // Agregar el contenedor al contenedor de textareas
+
         this.textareasContainer.appendChild(textareaContainer);
 
         return textareaContainer;
     }
-updateFormData(formData) {
-    // Aquí puedes acceder a formData.title, formData.description, etc. para cargar los datos
-    const title = formData.title;
-    const description = formData.description;
-    const placeholder = formData.placeholder;
-    const help = formData.help;
 
-    // Luego, puedes asignar estos valores a los campos de entrada correspondientes
-    titleInput.value = title;
-    descriptionInput.value = description;
-    placeholderInput.value = placeholder;
-    helpInput.value = help;
+editQuestion(formData, textareaContainer) {
+
+    const updateButton = textareaContainer.querySelector('button');
+    updateButton.disabled = true;
+
+
+    const textareaElement = textareaContainer.querySelector('textarea');
+    const titleInput = this.createInput('Title');
+    titleInput.value = formData.title;
+    const descriptionInput = this.createInput('Description');
+    descriptionInput.value = formData.description;
+    const placeholderInput = this.createInput('Placeholder');
+    placeholderInput.value = formData.placeholder;
+    const helpInput = this.createInput('Help');
+    helpInput.value = formData.help;
+
+
+    const currentInputs = textareaContainer.querySelectorAll('input');
+    currentInputs.forEach(input => input.remove());
+    textareaContainer.insertBefore(titleInput, textareaElement);
+    textareaContainer.insertBefore(descriptionInput, textareaElement);
+    textareaContainer.insertBefore(placeholderInput, textareaElement);
+    textareaContainer.insertBefore(helpInput, textareaElement);
+
+    const saveButton = this.createButton('Guardar');
+    textareaContainer.insertBefore(saveButton, textareaElement);
+
+    saveButton.addEventListener('click', () => {
+
+        formData.title = titleInput.value;
+        formData.description = descriptionInput.value;
+        formData.placeholder = placeholderInput.value;
+        formData.help = helpInput.value;
+
+
+        textareaElement.value = formData.description;
+
+
+        titleInput.remove();
+        descriptionInput.remove();
+        placeholderInput.remove();
+        helpInput.remove();
+        saveButton.remove();
+        updateButton.disabled = true;
+    });
 }
 
 
  deleteTextareaContainer(textareaContainer) {
-    // Encuentra el índice del elemento a eliminar
+
     const index = this.findIndexOfContainer(textareaContainer);
 
     if (index !== -1) {
-        // Elimina el registro del array
+
         this.registros.splice(index, 1);
 
-        // Elimina el elemento visual
+
         this.textareasContainer.removeChild(textareaContainer);
 
-        // Actualiza los valores de list_order
+   
         this.updateListOrderValues();
     }
 }
-
-
-
 
     moveUp(textareaContainer) {
         const index = this.findIndexOfContainer(textareaContainer);

@@ -15,22 +15,17 @@ from django.shortcuts import render
 from .models import Form, OpenQuestion
 import requests
 
-# Create your views here.
+
 def mi_vista(request):
     return render(request, 'home.html')
 
 
 def update_form(request, form_id):
     if request.method == 'PUT':
-        # Accede al formulario con la ID capturada de la URL
         try:
             form = Form.objects.get(id=form_id)
         except Form.DoesNotExist:
             return JsonResponse({'error': 'El formulario no existe'}, status=404)
-
-        # Procesa la solicitud PUT, por ejemplo, actualiza los campos del formulario
-        # Asegúrate de manejar correctamente los datos que recibes en la solicitud PUT
-
         return JsonResponse({'message': 'Formulario actualizado con éxito'}, status=200)
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=405)
@@ -41,13 +36,10 @@ def open_question_list(request, form_id):
     form = Form.objects.get(id=form_id)
 
     if request.method == 'POST':
-        # Procesar los datos del formulario de creación de preguntas
         pregunta = request.POST.get('pregunta')
         descripcion_pregunta = request.POST.get('descripcion_pregunta')
         placeholder_pregunta = request.POST.get('placeholder_pregunta')
         help_pregunta = request.POST.get('help_pregunta')
-
-        # Crear una nueva instancia de OpenQuestion asociada al formulario
         nueva_pregunta = OpenQuestion(
             title=pregunta,
             description=descripcion_pregunta,
@@ -55,21 +47,18 @@ def open_question_list(request, form_id):
             help=help_pregunta
         )
         nueva_pregunta.save()
-
-        # Asociar la nueva pregunta con el formulario
         form.questions_form.add(nueva_pregunta)
 
         preguntas_creadas = [nueva_pregunta]
 
     else:
-        # Obtener las preguntas asociadas a este formulario
         preguntas_creadas = form.questions_form.all()
 
     return render(request, 'open_question_list.html', {'form': form, 'preguntas_creadas': preguntas_creadas})
 
 
 def fetch_form_api(preguntas_creadas):
-    api_url = "/api/form/"  # Reemplaza con la URL correcta de tu API de form
+    api_url = "/api/form/"
     payload = {
         "preguntas_creadas": preguntas_creadas
     }
@@ -78,12 +67,10 @@ def fetch_form_api(preguntas_creadas):
 
     if response.status_code == 200:
         data = response.json()
-        # Aquí puedes procesar la respuesta de la API de form como desees
         print(data)
     else:
         print("Error al hacer la solicitud a la API de form")
 
-# Llama a la función y pasa la lista de IDs
     fetch_form_api(preguntas_creadas)
 
 def form(request):
@@ -96,8 +83,6 @@ def form(request):
             title_description=title_description
         )
         nuevo_formulario.save()
-
-        # Redirige a la vista 'open_list' con el ID del nuevo formulario
         return redirect('open_list', form_id=nuevo_formulario.id)
     nuevo_formulario = Form()
 
