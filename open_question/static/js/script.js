@@ -146,6 +146,9 @@ class FormManager {
         const titleDiv = document.createElement('div');
         titleDiv.textContent = formData.title;
 
+
+
+
         const textareaElement = document.createElement('textarea');
         textareaElement.placeholder = formData.placeholder;
         textareaElement.setAttribute('data-description', formData.description);
@@ -155,37 +158,60 @@ class FormManager {
         const descriptionDiv = document.createElement('div');
         descriptionDiv.textContent = formData.description;
 
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.addEventListener('click', () => {
-            this.deleteTextareaContainer(textareaContainer);
-        });
+        const deleteIcon = document.createElement('i');
+deleteIcon.classList.add('fas', 'fa-trash', 'icon');
 
-        const updateButton = document.createElement('button');
-        updateButton.textContent = 'Update';
-        updateButton.addEventListener('click', () => {
-            this.editQuestion(formData, textareaContainer);
-        });
+deleteIcon.addEventListener('click', () => {
+    this.deleteTextareaContainer(textareaContainer);
+});
 
-        const upButton = document.createElement('button');
-        upButton.textContent = 'Move Up';
-        upButton.addEventListener('click', () => {
-            this.moveUp(textareaContainer);
-        });
+const updateIcon = document.createElement('i');
+updateIcon.classList.add('fas', 'fa-edit','icon');
 
-        const downButton = document.createElement('button');
-        downButton.textContent = 'Move Down';
-        downButton.addEventListener('click', () => {
-            this.moveDown(textareaContainer);
-        });
+updateIcon.addEventListener('click', () => {
+    this.editQuestion(formData, textareaContainer);
+});
+
+const upIcon = document.createElement('i');
+upIcon.classList.add('fas', 'fa-arrow-up','icon');
+
+upIcon.addEventListener('click', () => {
+    this.moveUp(textareaContainer);
+});
+
+const downIcon = document.createElement('i');
+downIcon.classList.add('fas', 'fa-arrow-down', 'icon');
+
+downIcon.addEventListener('click', () => {
+    this.moveDown(textareaContainer);
+});
+
+
+const helpIcon = document.createElement('i');
+helpIcon.classList.add('fas', 'fa-question-circle', 'icon');
+helpIcon.addEventListener('click', () => {
+    Swal.fire({
+        title: 'Help',
+        text: formData.help,
+        icon: 'info',
+        confirmButtonText: 'OK'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            console.log('Confirm Ok');
+        }
+    });
+});
+
+
 
         textareaContainer.appendChild(titleDiv);
         textareaContainer.appendChild(textareaElement);
         textareaContainer.appendChild(descriptionDiv);
-        textareaContainer.appendChild(deleteButton);
-        textareaContainer.appendChild(updateButton);
-        textareaContainer.appendChild(upButton);
-        textareaContainer.appendChild(downButton);
+        textareaContainer.appendChild(deleteIcon);
+        textareaContainer.appendChild(updateIcon);
+        textareaContainer.appendChild(upIcon);
+        textareaContainer.appendChild(downIcon);
+        textareaContainer.appendChild(helpIcon);
 
         this.textareasContainer.appendChild(textareaContainer);
 
@@ -193,8 +219,8 @@ class FormManager {
     }
 
     editQuestion(formData, textareaContainer) {
-        const updateButton = textareaContainer.querySelector('button');
-        updateButton.disabled = true;
+        const updateIcon = textareaContainer.querySelector('button');
+        //updateIcon.disabled = true;
 
         const textareaElement = textareaContainer.querySelector('textarea');
         const titleInput = this.createInput('Title');
@@ -229,7 +255,7 @@ class FormManager {
             placeholderInput.remove();
             helpInput.remove();
             saveButton.remove();
-            updateButton.disabled = true;
+            //updateButton.disabled = true;
         });
     }
 

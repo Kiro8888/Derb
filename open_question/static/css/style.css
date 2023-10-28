@@ -148,3 +148,17 @@ h2 {
 .custom-form button:hover {
     background-color: #0056b3;
 }
+.icon {
+ cursor: pointer;
+    margin-right: 8px;
+    font-size: 20px;
+    color: #007bff;
+    transition: color 0.3s, box-shadow 0.3s, transform 0.2s; /* Agrega transiciones suaves */
+}
+
+/* Cambia el color del icono al pasar el cursor sobre él */
+.icon:hover {
+color: #ff5733; /* Cambia el color a uno diferente al hacer hover */
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Agrega una sombra sutil */
+    transform: scale(1.1);
+}
