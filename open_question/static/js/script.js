@@ -21,53 +21,58 @@ class FormManager {
         this.myForm.addEventListener('submit', this.handleFormSubmit.bind(this));
     }
 
-    async handleFormSubmit(event) {
-        event.preventDefault();
+async handleFormSubmit(event) {
+    event.preventDefault();
 
-        try {
-            for (const formData of this.records) {
-                this.sendDataToAPI(formData);
-            }
+    try {
+        for (const formData of this.records) {
+            await this.sendDataToAPI(formData);
 
-            const urlParts = window.location.pathname.split('/');
-            const formId = urlParts[urlParts.length - 2];
-
-            const response = await fetch('/api/open-questions/');
-            if (!response.ok) {
-                throw new Error('Failed to fetch the list of questions');
-            }
-            const data = await response.json();
-
-            const nonDeletedRecords = this.records.filter(formData => formData !== null);
-            const questionsToUpdate = nonDeletedRecords.map(formData => {
-                const question = data.find(item => item.title === formData.title);
-                if (question) {
-                    return question.id;
-                }
-                return null;
-            });
-
-            const dataToUpdate = {
-                questions_form: questionsToUpdate
-            };
-
-            const putResponse = await fetch(`/api/form/${formId}/`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(dataToUpdate)
-            });
-
-            if (putResponse.ok) {
-                console.log('Field "questions_form" updated successfully');
-            } else {
-                console.error('Failed to update the "questions_form" field');
-            }
-        } catch (error) {
-            console.error('Error fetching questions or updating the form:', error);
+            // Agrega un retraso de 1 segundo (1000 milisegundos)
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
+
+        const urlParts = window.location.pathname.split('/');
+        const formId = urlParts[urlParts.length - 2];
+
+        // Continúa con el código de la solicitud PUT
+        const response = await fetch('/api/open-questions/');
+        if (!response.ok) {
+            throw new Error('Failed to fetch the list of questions');
+        }
+        const data = await response.json();
+
+        const nonDeletedRecords = this.records.filter(formData => formData !== null);
+        const questionsToUpdate = nonDeletedRecords.map(formData => {
+            const question = data.find(item => item.title === formData.title);
+            if (question) {
+                return question.id;
+            }
+            return null;
+        });
+
+        const dataToUpdate = {
+            questions_form: questionsToUpdate
+        };
+
+        const putResponse = await fetch(`/api/form/${formId}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataToUpdate)
+        });
+
+        if (putResponse.ok) {
+            console.log('Field "questions_form" updated successfully');
+        } else {
+            console.error('Failed to update the "questions_form" field');
+        }
+    } catch (error) {
+        console.error('Error fetching questions or updating the form:', error);
     }
+}
+
 
     handleDragStart(e) {
         e.dataTransfer.setData('text/plain', 'openQuestion');
@@ -145,10 +150,6 @@ class FormManager {
         const textareaContainer = document.createElement('div');
         const titleDiv = document.createElement('div');
         titleDiv.textContent = formData.title;
-
-
-
-
         const textareaElement = document.createElement('textarea');
         textareaElement.placeholder = formData.placeholder;
         textareaElement.setAttribute('data-description', formData.description);
