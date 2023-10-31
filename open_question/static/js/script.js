@@ -1,3 +1,5 @@
+const urlParams = new URLSearchParams(window.location.search);
+const formId = urlParams.get('form_id');
 class FormManager {
     constructor() {
 
@@ -21,40 +23,48 @@ class FormManager {
         this.myForm.addEventListener('submit', this.handleFormSubmit.bind(this));
     }
 
+
 async handleFormSubmit(event) {
     event.preventDefault();
 
     try {
-        for (const formData of this.records) {
-            await this.sendDataToAPI(formData);
-
-            // Agrega un retraso de 1 segundo (1000 milisegundos)
-            await new Promise(resolve => setTimeout(resolve, 1000));
+      for (const formData of this.records) {
+           await this.sendDataToAPI(formData);
+           await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         const urlParts = window.location.pathname.split('/');
         const formId = urlParts[urlParts.length - 2];
 
-        // Continúa con el código de la solicitud PUT
-        const response = await fetch('/api/open-questions/');
-        if (!response.ok) {
+        // Obtiene las preguntas actuales del formulario
+        const currentQuestionsResponse = await fetch(`/api/form/${formId}/`);
+        if (!currentQuestionsResponse.ok) {
+            throw new Error('Failed to fetch the current questions in the form');
+        }
+        const currentQuestionsData = await currentQuestionsResponse.json();
+
+        // Obtiene todas las preguntas disponibles
+        const allQuestionsResponse = await fetch('/api/open-questions/');
+        if (!allQuestionsResponse.ok) {
             throw new Error('Failed to fetch the list of questions');
         }
-        const data = await response.json();
+        const allQuestionsData = await allQuestionsResponse.json();
 
-        const nonDeletedRecords = this.records.filter(formData => formData !== null);
-        const questionsToUpdate = nonDeletedRecords.map(formData => {
-            const question = data.find(item => item.title === formData.title);
-            if (question) {
-                return question.id;
-            }
-            return null;
+        // Combina las preguntas actuales con las nuevas preguntas
+        const currentQuestionIds = currentQuestionsData.questions_form || [];
+        const newQuestionIds = this.records.map(formData => {
+            const question = allQuestionsData.find(item => item.title === formData.title);
+            return question ? question.id : null;
         });
 
+        // Combina las listas de preguntas sin duplicados
+        const updatedQuestionIds = [...new Set([...currentQuestionIds, ...newQuestionIds])];
+
         const dataToUpdate = {
-            questions_form: questionsToUpdate
+            questions_form: updatedQuestionIds
         };
 
+        // Realiza una solicitud PUT para actualizar el formulario con todas las preguntas
         const putResponse = await fetch(`/api/form/${formId}/`, {
             method: 'PUT',
             headers: {
@@ -72,7 +82,6 @@ async handleFormSubmit(event) {
         console.error('Error fetching questions or updating the form:', error);
     }
 }
-
 
     handleDragStart(e) {
         e.dataTransfer.setData('text/plain', 'openQuestion');
@@ -111,9 +120,18 @@ async handleFormSubmit(event) {
 
                 this.clearFields(titleInput, descriptionInput, placeholderInput, helpInput, saveButton);
 
-                const textareaContainer = this.createTextareaContainer(formData);
+               // const textareaContainer = this.createTextareaContainer(formData);
 
-                this.textareasContainer.appendChild(textareaContainer);
+                //this.textareasContainer.appendChild(textareaContainer);
+                // this.sendDataToAPI(formData);
+                const event = new Event('submit');
+                // Llama a la función handleFormSubmit
+                this.handleFormSubmit(event);
+
+                setTimeout(() => {
+        window.location.reload();
+    }, 1500); // 2000 milisegundos (2 segundos)
+
             });
 
             customForm.appendChild(titleInput);
@@ -124,6 +142,7 @@ async handleFormSubmit(event) {
 
             this.customFormContainer.appendChild(customForm);
         }
+
     }
 
     createInput(placeholder) {
@@ -144,148 +163,6 @@ async handleFormSubmit(event) {
             field.value = '';
             field.style.display = 'none';
         });
-    }
-
-    createTextareaContainer(formData) {
-        const textareaContainer = document.createElement('div');
-        const titleDiv = document.createElement('div');
-        titleDiv.textContent = formData.title;
-        const textareaElement = document.createElement('textarea');
-        textareaElement.placeholder = formData.placeholder;
-        textareaElement.setAttribute('data-description', formData.description);
-        textareaElement.style.width = '100%';
-        textareaElement.style.height = '200px';
-
-        const descriptionDiv = document.createElement('div');
-        descriptionDiv.textContent = formData.description;
-
-        const deleteIcon = document.createElement('i');
-deleteIcon.classList.add('fas', 'fa-trash', 'icon');
-
-deleteIcon.addEventListener('click', () => {
-    this.deleteTextareaContainer(textareaContainer);
-});
-
-const updateIcon = document.createElement('i');
-updateIcon.classList.add('fas', 'fa-edit','icon');
-
-updateIcon.addEventListener('click', () => {
-    this.editQuestion(formData, textareaContainer);
-});
-
-const upIcon = document.createElement('i');
-upIcon.classList.add('fas', 'fa-arrow-up','icon');
-
-upIcon.addEventListener('click', () => {
-    this.moveUp(textareaContainer);
-});
-
-const downIcon = document.createElement('i');
-downIcon.classList.add('fas', 'fa-arrow-down', 'icon');
-
-downIcon.addEventListener('click', () => {
-    this.moveDown(textareaContainer);
-});
-
-
-const helpIcon = document.createElement('i');
-helpIcon.classList.add('fas', 'fa-question-circle', 'icon');
-helpIcon.addEventListener('click', () => {
-    Swal.fire({
-        title: 'Help',
-        text: formData.help,
-        icon: 'info',
-        confirmButtonText: 'OK'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            console.log('Confirm Ok');
-        }
-    });
-});
-
-
-
-        textareaContainer.appendChild(titleDiv);
-        textareaContainer.appendChild(textareaElement);
-        textareaContainer.appendChild(descriptionDiv);
-        textareaContainer.appendChild(deleteIcon);
-        textareaContainer.appendChild(updateIcon);
-        textareaContainer.appendChild(upIcon);
-        textareaContainer.appendChild(downIcon);
-        textareaContainer.appendChild(helpIcon);
-
-        this.textareasContainer.appendChild(textareaContainer);
-
-        return textareaContainer;
-    }
-
-    editQuestion(formData, textareaContainer) {
-        const updateIcon = textareaContainer.querySelector('button');
-        //updateIcon.disabled = true;
-
-        const textareaElement = textareaContainer.querySelector('textarea');
-        const titleInput = this.createInput('Title');
-        titleInput.value = formData.title;
-        const descriptionInput = this.createInput('Description');
-        descriptionInput.value = formData.description;
-        const placeholderInput = this.createInput('Placeholder');
-        placeholderInput.value = formData.placeholder;
-        const helpInput = this.createInput('Help');
-        helpInput.value = formData.help;
-
-        const currentInputs = textareaContainer.querySelectorAll('input');
-        currentInputs.forEach(input => input.remove());
-        textareaContainer.insertBefore(titleInput, textareaElement);
-        textareaContainer.insertBefore(descriptionInput, textareaElement);
-        textareaContainer.insertBefore(placeholderInput, textareaElement);
-        textareaContainer.insertBefore(helpInput, textareaElement);
-
-        const saveButton = this.createButton('Save');
-        textareaContainer.insertBefore(saveButton, textareaElement);
-
-        saveButton.addEventListener('click', () => {
-            formData.title = titleInput.value;
-            formData.description = descriptionInput.value;
-            formData.placeholder = placeholderInput.value;
-            formData.help = helpInput.value;
-
-            textareaElement.value = formData.description;
-
-            titleInput.remove();
-            descriptionInput.remove();
-            placeholderInput.remove();
-            helpInput.remove();
-            saveButton.remove();
-            //updateButton.disabled = true;
-        });
-    }
-
-    deleteTextareaContainer(textareaContainer) {
-        const index = this.findIndexOfContainer(textareaContainer);
-
-        if (index !== -1) {
-            this.records.splice(index, 1);
-            this.textareasContainer.removeChild(textareaContainer);
-            this.updateListOrderValues();
-        }
-    }
-
-    moveUp(textareaContainer) {
-        const index = this.findIndexOfContainer(textareaContainer);
-        if (index > 0) {
-            const prevIndex = index - 1;
-            this.swapContainers(index, prevIndex);
-            this.updateListOrderValues();
-        }
-    }
-
-    moveDown(textareaContainer) {
-        const index = this.findIndexOfContainer(textareaContainer);
-        if (index < this.records.length - 1) {
-            const nextIndex = index + 1;
-            this.swapContainers(index, nextIndex);
-            this.updateListOrderValues();
-        }
     }
 
     findIndexOfContainer(textareaContainer) {
@@ -328,5 +205,253 @@ helpIcon.addEventListener('click', () => {
         });
     }
 }
+/////////////////////////CARGAR LAS PREGUNTAS EN EL FORM
+
+async function updateIcon(pregunta) {
+const preguntaId = pregunta.id;
+    try {
+        // Obtén los datos actuales de la pregunta desde tu API
+        const response = await fetch(`/api/open-questions/${preguntaId}/`);
+        if (!response.ok) {
+            console.error('Error al obtener los datos de la pregunta');
+            return;
+        }
+        const preguntaData = await response.json();
+
+        // Crear elementos input para la edición
+        const titleInput = document.createElement('input');
+        titleInput.type = 'text';
+        titleInput.value = preguntaData.title;
+
+        const descriptionInput = document.createElement('input');
+        descriptionInput.type = 'text';
+        descriptionInput.value = preguntaData.description;
+
+        const placeholderInput = document.createElement('input');
+        placeholderInput.type = 'text';
+        placeholderInput.value = preguntaData.placeholder;
+
+        const helpInput = document.createElement('input');
+        helpInput.type = 'text';
+        helpInput.value = preguntaData.help;
+
+        // Botón para guardar los cambios
+        const saveChangesButton = document.createElement('button');
+        saveChangesButton.textContent = 'Save Changes';
+
+        // Evento para guardar los cambios
+        saveChangesButton.addEventListener('click', async () => {
+            // Obtén los valores editados de los campos de entrada
+            const editedData = {
+                title: titleInput.value,
+                description: descriptionInput.value,
+                placeholder: placeholderInput.value,
+                help: helpInput.value
+            };
+
+            // Realiza una solicitud PUT con los datos editados a tu API
+            const putResponse = await fetch(`/api/open-questions/${preguntaId}/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(editedData)
+            });
+
+            if (putResponse.ok) {
+                console.log('Pregunta actualizada exitosamente');
+                // Espera 2 segundos y luego recarga la página
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+            } else {
+                console.error('Error al actualizar la pregunta');
+            }
+        });
+
+        // Agregar los elementos al formulario de edición
+        const customForm = document.getElementById('miFormulario'); // Reemplaza con el ID correcto
+        customForm.innerHTML = ''; // Limpia el contenido anterior
+        customForm.appendChild(titleInput);
+        customForm.appendChild(descriptionInput);
+        customForm.appendChild(placeholderInput);
+        customForm.appendChild(helpInput);
+        customForm.appendChild(saveChangesButton);
+
+    } catch (error) {
+        console.error('Error al obtener los datos de la pregunta:', error);
+    }
+}
+
+
+
+
+function deleteQuestion(pregunta, preguntaDiv, preguntaId) {
+    const confirmDelete = confirm('¿Seguro que deseas eliminar esta pregunta?');
+    if (!confirmDelete) {
+        return; // Si el usuario cancela la eliminación, no hagas nada
+    }
+
+    // Realizar la solicitud DELETE a la API utilizando el ID de la pregunta
+    fetch(`/api/open-questions/${preguntaId}/`, {
+        method: 'DELETE',
+    })
+        .then(response => {
+            if (response.ok) {
+                console.log('Pregunta eliminada exitosamente');
+                // Elimina el textarea del formulario en el cliente
+                const textareaElement = preguntaDiv.querySelector('textarea');
+                if (textareaElement) {
+                    textareaElement.remove();
+                }
+            } else {
+                console.error('Error al eliminar la pregunta');
+            }
+        })
+        .catch(error => {
+            console.error('Error al enviar la solicitud DELETE:', error);
+        });
+
+    // Luego de eliminar el textarea, también puedes eliminar la preguntaDiv si es necesario
+    preguntaDiv.remove();
+}
+
+
+function loadform() {
+
+    const formId = window.location.pathname.split('/').filter(Boolean).pop();
+ console.log('formId:', formId);
+
+    if (formId) {
+        fetch(`/api/form/${formId}/`)
+            .then(response => {
+                if (!response.ok) {
+                    // Manejo de errores si no se puede cargar el formulario
+                    throw new Error('No se pudo cargar el formulario.');
+                }
+                return response.json();
+            })
+            .then(formulario => {
+                const textareasContainer = document.getElementById('textareas-container');
+
+                const formDiv = document.createElement('div');
+                formDiv.className = 'formulario';
+
+                const titleform = document.createElement('h2');
+                titleform.textContent = formulario.title_form;
+
+                const descriptionform = document.createElement('p');
+                descriptionform.textContent = formulario.title_description;
+
+                formDiv.appendChild(titleform);
+                formDiv.appendChild(descriptionform);
+
+                formulario.questions_form.forEach(preguntaId => {
+                    fetch(`/api/open-questions/${preguntaId}/`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('No se pudo cargar la pregunta.');
+                            }
+                            return response.json();
+                        })
+                        .then(pregunta => {
+                                    // Agregar un console.log para mostrar el id de la pregunta
+                            console.log('ID de la pregunta:', pregunta.id);
+
+
+                            const preguntaDiv = document.createElement('div');
+                            preguntaDiv.className = 'pregunta';
+
+                            const tituloPregunta = document.createElement('h3');
+                            tituloPregunta.textContent = pregunta.title;
+
+                            const descripcionPregunta = document.createElement('p');
+                            descripcionPregunta.textContent = pregunta.description;
+
+                            const textareaElement = document.createElement('textarea');
+                            textareaElement.placeholder = pregunta.placeholder;
+                            textareaElement.style.width = '100%';
+                            textareaElement.style.height = '200px';
+
+                            textareaElement.setAttribute('data-question-id', pregunta.id);
+
+                            preguntaDiv.appendChild(tituloPregunta);
+                            preguntaDiv.appendChild(descripcionPregunta);
+                            preguntaDiv.appendChild(textareaElement);
+
+                             // DELETE
+                           const deleteIcon = document.createElement('i');
+                           deleteIcon.classList.add('fas', 'fa-trash', 'icon');
+                           deleteIcon.setAttribute('data-question-id', pregunta.id); // Almacena el ID de la pregunta
+                           deleteIcon.addEventListener('click', () => {
+                               this.deleteQuestion(pregunta, preguntaDiv, pregunta.id); // Pasa el ID de la pregunta
+                            });
+                            preguntaDiv.appendChild(deleteIcon);
+
+
+                              // UPDATE
+                                  const updateIcon = document.createElement('i');
+                               updateIcon.classList.add('fas', 'fa-edit', 'icon');
+                               updateIcon.setAttribute('data-question-id', pregunta.id); // Almacena el ID de la pregunta
+                               updateIcon.addEventListener('click', async () => {
+                                  console.log('ACTUALIZANDO', pregunta.id)
+                                  const customForm = document.getElementById('custom-form'); // Asegúrate de utilizar el ID correcto
+                                    this.updateIcon(pregunta);
+                                });
+                                preguntaDiv.appendChild(updateIcon);
+
+                                //HELP
+                               const helpIcon = document.createElement('i');
+                               helpIcon.classList.add('fas', 'fa-question-circle', 'icon');
+                               helpIcon.setAttribute('data-question-id', pregunta.id); // Almacena el ID de la pregunta
+                               helpIcon.addEventListener('click', async () => {
+                                  console.log('AYUDA', pregunta.id)
+                                      Swal.fire({
+                                            title: 'Help',
+                                            text: pregunta.help,
+                                            icon: 'info',
+                                            confirmButtonText: 'OK'
+                                      }).then((result) => {
+                                            if (result.isConfirmed) {
+                                             console.log('Confirm Ok');
+                                             }
+                                      });
+                                });
+                                preguntaDiv.appendChild(helpIcon);
+
+                                //UP
+                                const upIcon = document.createElement('i');
+                                upIcon.classList.add('fas', 'fa-arrow-up','icon');
+
+                                upIcon.addEventListener('click', () => {
+                                       console.log('list_order:', pregunta.list_order);
+                                });
+
+                                preguntaDiv.appendChild(upIcon);
+
+
+
+                            formDiv.appendChild(preguntaDiv);
+
+
+                             const hrElement = document.createElement('hr');
+
+                             formDiv.appendChild(hrElement);
+                        })
+                        .catch(error => console.error('Error al cargar la pregunta:', error));
+                });
+
+                textareasContainer.appendChild(formDiv);
+            })
+            .catch(error => console.error('Error al cargar el formulario:', error));
+    } else {
+        console.error('Formulario ID no proporcionado en la URL.');
+    }
+}
+/////////////////////////CARGAR LAS PREGUNTAS EN EL FORM
 
 new FormManager();
+window.addEventListener('load', () => {
+    console.log('hola');
+    loadform(formId);
+});

@@ -7,7 +7,7 @@ const formId = urlParams.get('form_id');
     const formId = window.location.pathname.split('/').filter(Boolean).pop();
 
     if (formId) {
-        fetch(`/api/form/1/`)
+        fetch(`/api/form/2/`)
             .then(response => {
                 if (!response.ok) {
 
