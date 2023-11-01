@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Max
 class OpenQuestion(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
@@ -11,10 +12,11 @@ class OpenQuestion(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-        if not self.list_order:
-            last_item = OpenQuestion.objects.last()
-            if last_item:
-                self.list_order = last_item.list_order + 1
+        if self.pk is None:
+            # Si es un nuevo registro, obtén el valor máximo actual y suma 1
+            max_order = OpenQuestion.objects.aggregate(models.Max('list_order'))['list_order__max']
+            if max_order is not None:
+                self.list_order = max_order + 1
             else:
                 self.list_order = 1
         super(OpenQuestion, self).save(*args, **kwargs)

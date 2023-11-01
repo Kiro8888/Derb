@@ -162,3 +162,18 @@ color: #ff5733; /* Cambia el color a uno diferente al hacer hover */
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Agrega una sombra sutil */
     transform: scale(1.1);
 }
+input {
+    width: 100%; /* Ancho al 100% */
+    padding: 10px; /* Relleno de 10px */
+    margin: 5px 0; /* Márgenes superior e inferior de 5px y 0 a los lados */
+    border: 1px solid #ccc; /* Borde de 1px sólido gris claro */
+    border-radius: 5px; /* Bordes redondeados de 5px */
+}
+.blue-button {
+    background-color: blue; /* Fondo azul */
+    color: white; /* Texto blanco */
+    padding: 10px 20px; /* Relleno 10px arriba/abajo, 20px izquierda/derecha */
+    border: none; /* Sin borde */
+    cursor: pointer; /* Cambia el cursor al pasar el mouse */
+    /* Agrega otros estilos personalizados según tus necesidades */
+}
