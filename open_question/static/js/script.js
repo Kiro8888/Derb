@@ -1,9 +1,8 @@
 const urlParams = new URLSearchParams(window.location.search);
 const formId = urlParams.get('form_id');
+const apiBaseUrl = 'http://127.0.0.1:8081';
 class FormManager {
     constructor() {
-
-
         this.formPreview = document.getElementById('form-preview');
         this.customFormContainer = document.getElementById('custom-form-container');
         this.textareasContainer = document.getElementById('textareas-container');
@@ -212,8 +211,7 @@ function Up(pregunta) {
     console.log('list_order UP:', pregunta.list_order);
 
     if (pregunta.list_order > -1) {
-        // Realiza una solicitud PUT para cambiar la posición de la pregunta
-        const serverUrl = `/api/open-questions/${pregunta.id}/`; // Reemplaza con tu URL de la API
+        const serverUrl = `${apiBaseUrl}/api/open-questions/${pregunta.id}/`;// Reemplaza con tu URL de la API
         fetch(serverUrl, {
             method: 'PUT',
             headers: {
@@ -245,7 +243,7 @@ function Down(pregunta) {
     console.log('list_order DW:', pregunta.list_order);
 
     // Realiza una solicitud PUT para cambiar la posición de la pregunta
-    const serverUrl = `/api/open-questions/${pregunta.id}/`; // Reemplaza con tu URL de la API
+    const serverUrl = `${apiBaseUrl}/api/open-questions/${pregunta.id}/`;// Reemplaza con tu URL de la API
     fetch(serverUrl, {
         method: 'PUT',
         headers: {
@@ -262,7 +260,7 @@ function Down(pregunta) {
             }, 1500); // 1500 milisegundos = 1.5 segundos
 
 // Obtén la pregunta con el valor de list_order más alto
-fetch('/api/open-questions/', { method: 'GET' })
+fetch(`${apiBaseUrl}/api/open-questions/`, { method: 'GET' })
     .then(response => response.json())
     .then(data => {
         // Ordena las preguntas por list_order en orden descendente
@@ -296,7 +294,7 @@ async function updateIcon(pregunta) {
 const preguntaId = pregunta.id;
     try {
         // Obtén los datos actuales de la pregunta desde tu API
-        const response = await fetch(`/api/open-questions/${preguntaId}/`);
+        const response = await fetch(`${apiBaseUrl}/api/open-questions/${preguntaId}/`);
         if (!response.ok) {
             console.error('Error al obtener los datos de la pregunta');
             return;
@@ -335,8 +333,9 @@ const preguntaId = pregunta.id;
                 help: helpInput.value
             };
 
+
             // Realiza una solicitud PUT con los datos editados a tu API
-            const putResponse = await fetch(`/api/open-questions/${preguntaId}/`, {
+            const putResponse = await fetch(`${apiBaseUrl}/api/open-questions/${preguntaId}/`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -379,9 +378,10 @@ function deleteQuestion(pregunta, preguntaDiv, preguntaId) {
     }
 
     // Realizar la solicitud DELETE a la API utilizando el ID de la pregunta
-    fetch(`/api/open-questions/${preguntaId}/`, {
+    fetch(`${apiBaseUrl}/api/open-questions/${preguntaId}/`, {
         method: 'DELETE',
     })
+
         .then(response => {
             if (response.ok) {
                 console.log('Pregunta eliminada exitosamente');
@@ -408,7 +408,7 @@ function loadform() {
     console.log('formId:', formId);
 
     if (formId) {
-        fetch(`/api/form/${formId}/`)
+        fetch(`${apiBaseUrl}/api/form/${formId}/`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('No se pudo cargar el formulario.');
@@ -429,8 +429,10 @@ function loadform() {
                 formDiv.appendChild(titleform);
                 formDiv.appendChild(descriptionform);
 
+
+
                 const questionsData = await Promise.all(formulario.questions_form.map(async preguntaId => {
-                    const response = await fetch(`/api/open-questions/${preguntaId}/`);
+                    const response = await fetch(`${apiBaseUrl}/api/open-questions/${preguntaId}/`);
                     if (!response.ok) {
                         throw new Error('No se pudo cargar la pregunta.');
                     }
