@@ -177,3 +177,7 @@ input {
     cursor: pointer; /* Cambia el cursor al pasar el mouse */
     /* Agrega otros estilos personalizados según tus necesidades */
 }
+.separador {
+    border-top: 2px solid #ccc; /* Línea separadora de 2 píxeles de grosor */
+    margin-top: 20px; /* Espacio superior entre las preguntas */
+}

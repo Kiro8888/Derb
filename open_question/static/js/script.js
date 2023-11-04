@@ -130,8 +130,7 @@ async handleFormSubmit(event) {
 
                 setTimeout(() => {
         window.location.reload();
-    }, 1500); // 2000 milisegundos (2 segundos)
-
+    }, 1100); // 2000 milisegundos (2 segundos)
             });
 
             customForm.appendChild(titleInput);
@@ -225,7 +224,7 @@ function Up(pregunta) {
                 // Actualiza la representación visual de las preguntas
                 setTimeout(() => {
                     window.location.reload(); // Recargar la página
-                }, 1500); // 1500 milisegundos = 1.5 segundos
+                }, 200); // 1500 milisegundos = 1.5 segundos
 
             } else {
                 console.error('Error al actualizar la posición de la pregunta en el servidor');
@@ -257,7 +256,7 @@ function Down(pregunta) {
             // Actualiza la representación visual de las preguntas
             setTimeout(() => {
                 window.location.reload(); // Recargar la página
-            }, 1500); // 1500 milisegundos = 1.5 segundos
+            }, 200); // 1500 milisegundos = 1.5 segundos
 
 // Obtén la pregunta con el valor de list_order más alto
 fetch(`${apiBaseUrl}/api/open-questions/`, { method: 'GET' })
@@ -348,7 +347,7 @@ const preguntaId = pregunta.id;
                 // Espera 2 segundos y luego recarga la página
         setTimeout(() => {
             window.location.reload();
-        }, 1500);
+        }, 200);
             } else {
                 console.error('Error al actualizar la pregunta');
             }
@@ -454,6 +453,10 @@ function loadform() {
                     const descripcionPregunta = document.createElement('p');
                     descripcionPregunta.textContent = pregunta.description;
 
+
+                     const hrElement = document.createElement('hr');
+                     formDiv.appendChild(hrElement);
+
                     const textareaElement = document.createElement('textarea');
                     textareaElement.placeholder = pregunta.placeholder;
                     textareaElement.style.width = '100%';
@@ -461,9 +464,11 @@ function loadform() {
 
                     textareaElement.setAttribute('data-question-id', pregunta.id);
 
+
                     preguntaDiv.appendChild(tituloPregunta);
                     preguntaDiv.appendChild(descripcionPregunta);
                     preguntaDiv.appendChild(textareaElement);
+
 
                     // DELETE
                     const deleteIcon = document.createElement('i');
@@ -525,9 +530,8 @@ function loadform() {
                     preguntaDiv.appendChild(downIcon);
 
                     formDiv.appendChild(preguntaDiv);
+                    preguntaDiv.appendChild(hrElement);
 
-                    const hrElement = document.createElement('hr');
-                    formDiv.appendChild(hrElement);
                 });
 
                 textareasContainer.appendChild(formDiv);
