@@ -1,99 +1,112 @@
-    const formSubmitButton = document.getElementById('form_submit');
+const formSubmitButton = document.getElementById('form_submit');
     const formularioUser = document.getElementById('formulario-user');
     const urlParams = new URLSearchParams(window.location.search);
     const formId = urlParams.get('form_id');
-    function loadform() {
-        const formId = window.location.pathname.split('/').filter(Boolean).pop();
-        console.log(formId);
+function loadform() {
+    const formId = window.location.pathname.split('/').filter(Boolean).pop();
+    console.log(formId);
 
-        if (formId) {
-            fetch(`/api/form/${formId}/`)
-                .then(response => {
+    if (formId) {
+        fetch(`/api/form/${formId}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('No se pudo cargar el formulario.');
+                }
+                return response.json();
+            })
+            .then(async formulario => {
+                const textareasContainer = document.getElementById('textareas-container');
+                const formDiv = document.createElement('div');
+                formDiv.className = 'formulario';
+
+                const titleform = document.createElement('h2');
+                titleform.textContent = formulario.title_form;
+
+                const descriptionform = document.createElement('p');
+                descriptionform.textContent = formulario.title_description;
+
+                formDiv.appendChild(titleform);
+                formDiv.appendChild(descriptionform);
+
+                const preguntaIds = formulario.questions_form;
+
+                // Obtener los detalles de cada pregunta en el orden correcto
+                const preguntas = await Promise.all(preguntaIds.map(async preguntaId => {
+                    const response = await fetch(`/api/open-questions/${preguntaId}/`);
                     if (!response.ok) {
-                        throw new Error('No se pudo cargar el formulario.');
+                        throw new Error('No se pudo cargar la pregunta.');
                     }
                     return response.json();
-                })
-                .then(formulario => {
-                    const textareasContainer = document.getElementById('textareas-container');
-                    const formDiv = document.createElement('div');
-                    formDiv.className = 'formulario';
+                }));
 
-                    const titleform = document.createElement('h2');
-                    titleform.textContent = formulario.title_form;
+                // Ordenar las preguntas por list_order
+                preguntas.sort((a, b) => a.list_order - b.list_order);
 
-                    const descriptionform = document.createElement('p');
-                    descriptionform.textContent = formulario.title_description;
+                for (const pregunta of preguntas) {
+                    const preguntaDiv = document.createElement('div');
+                    preguntaDiv.className = 'pregunta';
 
-                    formDiv.appendChild(titleform);
-                    formDiv.appendChild(descriptionform);
+                    const tituloPregunta = document.createElement('h3');
+                    tituloPregunta.textContent = pregunta.title;
 
-                    formulario.questions_form.forEach(preguntaId => {
-                        // Asumiendo que preguntaId es una Promesa que se resuelve con el ID de la pregunta
-                        Promise.resolve(preguntaId)
-                            .then(resolvedPreguntaId => {
-                                fetch(`/api/open-questions/${resolvedPreguntaId}`)
-                                    .then(response => {
-                                        if (!response.ok) {
-                                            throw new Error('No se pudo cargar la pregunta.');
-                                        }
-                                        return response.json();
-                                    })
-                                    .then(pregunta => {
-                                        const preguntaDiv = document.createElement('div');
-                                        preguntaDiv.className = 'pregunta';
+                    const descripcionPregunta = document.createElement('p');
+                    descripcionPregunta.textContent = pregunta.description;
 
-                                        const tituloPregunta = document.createElement('h3');
-                                        tituloPregunta.textContent = pregunta.title;
+                    const textareaElement = document.createElement('textarea');
+                    textareaElement.placeholder = pregunta.placeholder;
+                    textareaElement.style.width = '100%';
+                    textareaElement.style.height = '200px';
+                    textareaElement.setAttribute('data-question-id', pregunta.id);
 
-                                        const descripcionPregunta = document.createElement('p');
-                                        descripcionPregunta.textContent = pregunta.description;
+                    const sendButton = document.createElement('button');
+                    sendButton.textContent = 'Edit';
 
-                                        const textareaElement = document.createElement('textarea');
-                                        textareaElement.placeholder = pregunta.placeholder;
-                                        textareaElement.style.width = '100%';
-                                        textareaElement.style.height = '200px';
+                    // Agregar un manejador de eventos al botón para enviar la respuesta
+                    sendButton.addEventListener('click', function () {
+                        getResponseIdForQuestion(pregunta.id)
+                            .then(respuestaId => {
+                                if (respuestaId !== null) {
+                                    console.log('ID de respuesta:', respuestaId);
+                                    fetch(`/api/response-questions/${respuestaId}`)
+                                        .then(response => {
+                                            if (!response.ok) {
+                                                throw new Error('No se pudo cargar la respuesta.');
+                                            }
+                                            return response.json();
+                                        })
+                                        .then(respuesta => {
+                                            console.log('Respuesta obtenida:', respuesta.response);
+                                            textareaElement.value = respuesta.response;
+                                            createModal(respuestaId); // Crea el modal
+                                            openModal(); // Muestra el modal
+                                        })
+                                        .catch(error => console.error('Error al cargar la respuesta:', error));
+                                } else {
+                                    console.error('No se encontró una respuesta para la pregunta con ID', pregunta.id);
+                                }
+                            });
+                    });
 
-                                        textareaElement.setAttribute('data-question-id', resolvedPreguntaId);
+                    textareaElement.style.width = '100%';
+                    textareaElement.style.height = '200px';
 
+                    const help = document.createElement('button');
+                    help.textContent = 'Help';
 
-                                        const sendButton = document.createElement('button');
-                                        sendButton.textContent = 'Edit';
-
-                                        // Agregar un manejador de eventos al botón para enviar la respuesta
-                                            sendButton.addEventListener('click', function () {
-                                                getResponseIdForQuestion(resolvedPreguntaId)
-                                                    .then(respuestaId => {
-                                                        if (respuestaId !== null) {
-                                                            console.log('ID de respuesta:', respuestaId);
-                                                            fetch(`/api/response-questions/${respuestaId}`)
-                                                                .then(response => {
-                                                                    if (!response.ok) {
-                                                                        throw new Error('No se pudo cargar la respuesta.');
-                                                                    }
-                                                                    return response.json();
-                                                                })
-                                                                .then(respuesta => {
-                                                                    console.log('Respuesta obtenida:', respuesta.response);
-                                                                    textareaElement.value = respuesta.response;
-                                                                    textareaElement.readOnly = true;
-                                                                    createModal(respuestaId); // Crea el modal
-                                                                    openModal(); // Muestra el modal
-                                                                })
-                                                                .catch(error => console.error('Error al cargar la respuesta:', error));
-                                                        } else {
-                                                            // Manejar el caso en que no se encuentra una respuesta
-                                                            console.error('No se encontró una respuesta para la pregunta con ID', resolvedPreguntaId);
-                                                        }
-                                                    });
-                                            });
-
-                                            textareaElement.style.width = '100%';
-                                            textareaElement.style.height = '200px';
-
-
-                                        // Luego, obtén el ID de respuesta con la función
-                                        getResponseIdForQuestion(resolvedPreguntaId)
+                    help.addEventListener('click', function () {
+                        Swal.fire({
+                            title: 'Help',
+                            text: pregunta.help,
+                            icon: 'info',
+                            confirmButtonText: 'OK'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                console.log('Confirm OK');
+                            }
+                        });
+                    });
+            // Luego, obtén el ID de respuesta con la función
+                                        getResponseIdForQuestion(pregunta.id)
                                             .then(respuestaId => {
                                                 if (respuestaId !== null) {
                                                     fetch(`/api/response-questions/${respuestaId}`)
@@ -111,29 +124,26 @@
                                                         .catch(error => console.error('Error al cargar la respuesta:', error));
                                                 } else {
                                                     // Manejar el caso en que no se encuentra una respuesta
-                                                    console.error('No se encontró una respuesta para la pregunta con ID', resolvedPreguntaId);
+                                                    console.error('No se encontró una respuesta para la pregunta con ID', pregunta.id);
                                                 }
                                             });
+                    preguntaDiv.appendChild(tituloPregunta);
+                    preguntaDiv.appendChild(descripcionPregunta);
+                    preguntaDiv.appendChild(textareaElement);
+                    preguntaDiv.appendChild(sendButton);
+                    preguntaDiv.appendChild(help);
 
-                                        preguntaDiv.appendChild(tituloPregunta);
-                                        preguntaDiv.appendChild(descripcionPregunta);
-                                        preguntaDiv.appendChild(textareaElement);
-                                        preguntaDiv.appendChild(sendButton);
+                    formDiv.appendChild(preguntaDiv);
+                }
 
-
-                                        formDiv.appendChild(preguntaDiv);
-                                    })
-                                    .catch(error => console.error('Error al cargar la pregunta:', error));
-                            });
-                    });
-
-                    textareasContainer.appendChild(formDiv);
-                })
-                .catch(error => console.error('Error al cargar el formulario:', error));
-        } else {
-            console.error('Formulario ID no proporcionado en la URL.');
-        }
+                textareasContainer.appendChild(formDiv);
+            })
+            .catch(error => console.error('Error al cargar el formulario:', error));
+    } else {
+        console.error('Formulario ID no proporcionado en la URL.');
     }
+}
+
 
     function getResponseIdForQuestion(preguntaId) {
         return fetch('/api/response-questions/') // Realiza una solicitud a la API de respuestas
@@ -155,19 +165,19 @@
 
 
 
-    function sendresponse() {
-        const textareas = document.querySelectorAll('#textareas-container textarea');
+function sendresponse() {
+    const textareas = document.querySelectorAll('#textareas-container textarea');
 
-        textareas.forEach((textarea) => {
-            const preguntaID = +textarea.getAttribute('data-question-id');
-            const respuesta = textarea.value;
+    textareas.forEach((textarea) => {
+        const preguntaID = +textarea.getAttribute('data-question-id');
+        const respuesta = textarea.value;
 
-
+        // Verifica si la respuesta no está vacía
+        if (respuesta.trim() !== '') {
             const respuestaActual = {
                 "questions": preguntaID,
                 "response": respuesta
             };
-
 
             fetch('/api/response-questions/', {
                 method: 'POST',
@@ -184,8 +194,12 @@
                 }
             })
             .catch(error => console.error(error.message));
-        });
-    }
+        } else {
+            // Puedes agregar una lógica opcional aquí si deseas manejar respuestas vacías de manera especial o simplemente omitirlas.
+        }
+    });
+}
+
 
     function getResponseIds() {
         fetch('/api/response-questions/')

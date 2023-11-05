@@ -442,6 +442,7 @@ function loadform() {
                 questionsData.sort((a, b) => a.list_order - b.list_order);
 
                 questionsData.forEach(pregunta => {
+                console.log('este es el pregunta:',pregunta);
                              console.log('ID de la pregunta:', pregunta.id, 'title',pregunta.title, 'list_order', pregunta.list_order);
 
                     const preguntaDiv = document.createElement('div');
