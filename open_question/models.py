@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Max
+from django.contrib.auth.models import User
 class OpenQuestion(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
@@ -24,11 +25,13 @@ class OpenQuestion(models.Model):
 
 class Response(models.Model):
     response = models.TextField(blank=True, null=True)
-    questions = models.OneToOneField(OpenQuestion, on_delete=models.CASCADE)
-
+    questions = models.ForeignKey(OpenQuestion, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.response
+
+
 
 
 class Form(models.Model):

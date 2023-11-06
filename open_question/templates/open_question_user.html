@@ -27,5 +27,9 @@
 {% endblock %}
 
 {% block js %}
+
+<script>
+    const userId = {{ user_id|default:"null" }};
+</script>
 <script type="module"  src="{% static 'js/user.js' %}"></script>
 {% endblock %}

@@ -105,28 +105,37 @@ function loadform() {
                             }
                         });
                     });
-            // Luego, obtén el ID de respuesta con la función
-                                        getResponseIdForQuestion(pregunta.id)
-                                            .then(respuestaId => {
-                                                if (respuestaId !== null) {
-                                                    fetch(`/api/response-questions/${respuestaId}`)
-                                                        .then(response => {
-                                                            if (!response.ok) {
-                                                                throw new Error('No se pudo cargar la respuesta.');
-                                                            }
-                                                            return response.json();
-                                                        })
-                                                        .then(respuesta => {
-                                                            console.log('Respuesta obtenida:', respuesta.response);
-                                                            textareaElement.value = respuesta.response;
-                                                            textareaElement.readOnly = true;
-                                                        })
-                                                        .catch(error => console.error('Error al cargar la respuesta:', error));
-                                                } else {
-                                                    // Manejar el caso en que no se encuentra una respuesta
-                                                    console.error('No se encontró una respuesta para la pregunta con ID', pregunta.id);
-                                                }
-                                            });
+// Luego, obtén el ID de respuesta con la función
+console.log('estamos imprimiendo el user.id: ', userId);
+getResponseIdForQuestion(pregunta.id, userId) // Pasa el ID del usuario a la función
+    .then(respuestaId => {
+        if (respuestaId !== null) {
+            console.log('ID de respuesta:', respuestaId);
+            fetch(`/api/response-questions/${respuestaId}?user=${userId}`) // Agrega el filtro por usuario
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('No se pudo cargar la respuesta.');
+                    }
+                    return response.json();
+                })
+                .then(respuesta => {
+                    console.log('Respuesta .user', respuesta.user);
+                    if (userId === respuesta.user) {
+                        textareaElement.value = respuesta.response;
+                        textareaElement.readOnly = true;
+                    } else {
+                        console.log('El usuario no coincide con el propietario de la respuesta.');
+                        // Puedes tomar una acción adicional aquí, como mostrar un mensaje o realizar otra lógica.
+                    }
+                })
+                .catch(error => console.error('Error al cargar la respuesta:', error));
+        } else {
+            // Manejar el caso en que no se encuentra una respuesta
+            console.error('No se encontró una respuesta para la pregunta con ID', pregunta.id);
+        }
+    });
+
+
                     preguntaDiv.appendChild(tituloPregunta);
                     preguntaDiv.appendChild(descripcionPregunta);
                     preguntaDiv.appendChild(textareaElement);
@@ -176,13 +185,19 @@ function sendresponse() {
         if (respuesta.trim() !== '') {
             const respuestaActual = {
                 "questions": preguntaID,
-                "response": respuesta
+                "response": respuesta,
+                "user": userId
             };
 
+            // Obtén el token CSRF de la cookie
+            const csrftoken = getCookie('csrftoken');
+
+            // Realiza la solicitud POST con el token CSRF incluido en las cabeceras
             fetch('/api/response-questions/', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken  // Incluye el token CSRF en las cabeceras
                 },
                 body: JSON.stringify(respuestaActual)
             })
@@ -200,24 +215,12 @@ function sendresponse() {
     });
 }
 
-
-    function getResponseIds() {
-        fetch('/api/response-questions/')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('No se pudieron cargar las respuestas.');
-                }
-                return response.json();
-            })
-            .then(respuestas => {
-                // Itera a través de las respuestas y muestra los IDs en el console.log
-                respuestas.forEach(respuesta => {
-                    console.log('ID de respuesta:', respuesta.id);
-                });
-            })
-            .catch(error => console.error('Error al cargar las respuestas:', error));
-    }
-    //CREATE MODAL
+// Función para obtener el token CSRF de la cookie
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
 
     function createModal(respuestaId) {
       // Crea el elemento del modal
@@ -270,12 +273,14 @@ function sendresponse() {
       .then(respuesta => {
         // Actualiza el campo 'response' de la respuesta
         respuesta.response = nuevaRespuesta;
-
+        const csrfToken = getCookie('csrftoken');
         // Envía una solicitud PUT para actualizar la respuesta
         return fetch(`/api/response-questions/${respuestaId}/`, {
           method: 'PUT',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+             'X-CSRFToken': csrfToken
+
           },
           body: JSON.stringify(respuesta)
         });
@@ -284,6 +289,9 @@ function sendresponse() {
         if (response.ok) {
           console.log('Respuesta actualizada con éxito');
           closeAndRemoveModal(); // Cierra el modal después de actualizar
+                      setTimeout(() => {
+        window.location.reload();
+    }, 500); // 500 milisegundos (1,3 segundos)
         } else {
           throw new Error('Error al actualizar la respuesta.');
         }
@@ -291,7 +299,11 @@ function sendresponse() {
       .catch(error => console.error(error.message));
     });
 
-
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
 
       // Agrega un botón de cierre
       const closeModalButton = document.createElement('span');

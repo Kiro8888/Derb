@@ -15,7 +15,8 @@ from .models import Form
 from django.shortcuts import render
 from .models import Form, OpenQuestion
 import requests
-
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 def mi_vista(request):
     return render(request, 'home.html')
@@ -89,12 +90,35 @@ def form(request):
 
     return render(request, 'create_form.html',{'nuevo_formulario': nuevo_formulario})
 
+
+@login_required
 def user_response(request, form_id=None):
-    print("Form ID:", form_id)  # Agrega esta línea para depuración
+    user_id = None  # Valor predeterminado para usuarios no autenticados
+    if request.user.is_authenticated:
+        user_id = request.user.id
     if form_id is not None:
         formulario = get_object_or_404(Form, pk=form_id)
-        print("Formulario encontrado:", formulario)  # Agrega esta línea para depuración
-        return render(request, 'open_question_user.html', {'formulario': formulario})
+
+        # Obtén el usuario autenticado
+        usuario_actual = request.user
+
+        # Filtra las respuestas del usuario actual
+        respuestas_del_usuario = Response.objects.filter(user=usuario_actual)
+
+        return render(request, 'open_question_user.html',
+                      {'formulario': formulario, 'respuestas_del_usuario': respuestas_del_usuario, 'user_id': user_id}) # Pasa el user_id a la plantilla
     else:
-        print("Formulario ID no proporcionado")  # Agrega esta línea para depuración
-        return render(request, 'open_question_user.html')
+        return render(request, 'open_question_user.html', {'user_id': user_id})
+
+
+@login_required
+def create_response(request):
+    if request.method == 'POST':
+        user = request.user
+        pregunta_id = request.POST.get('pregunta_id')
+        respuesta_texto = request.POST.get('respuesta_texto')
+
+        # Crea una nueva respuesta asociada al usuario actual
+        Response.objects.create(user=user, pregunta_id=pregunta_id, response=respuesta_texto)
+
+        return JsonResponse({'message': 'Respuesta creada con éxito'})
