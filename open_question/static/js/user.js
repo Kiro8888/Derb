@@ -87,20 +87,20 @@ class FormApp {
 
     const sendButton = document.createElement('button');
     sendButton.textContent = 'Edit';
-sendButton.addEventListener('click', () => {
-    const preguntaId = pregunta.id;
-    console.log('ID de la pregunta', preguntaId);
-    this.getResponseIdForQuestion(preguntaId)
-      .then((respuestaId) => {
-        console.log('Respuesta id:', respuestaId);
-        if (respuestaId !== null) {
-          console.log('ID de respuesta:', respuestaId);
-          this.loadResponseDataAndOpenModal(respuestaId, textareaElement);
-        } else {
-          console.error('No se encontró una respuesta para la pregunta con ID', preguntaId);
-        }
-      });
-});
+    sendButton.addEventListener('click', () => {
+        const preguntaId = pregunta.id;
+        console.log('ID de la pregunta', preguntaId);
+        this.getResponseIdForQuestion(preguntaId)
+          .then((respuestaId) => {
+            console.log('Respuesta id:', respuestaId);
+            if (respuestaId !== null) {
+              // Aquí, después de obtener respuestaId, debes verificar si el usuario actual es el propietario de la respuesta.
+              this.checkOwnershipAndLoadModal(respuestaId, textareaElement);
+            } else {
+              console.error('No se encontró una respuesta para la pregunta con ID', preguntaId);
+            }
+          });
+    });
 
     textareaElement.style.width = '100%';
     textareaElement.style.height = '200px';
@@ -131,6 +131,7 @@ fetch('/api/response-questions/')
     return response.json();
   })
   .then((respuestas) => {
+  console.log('ID DE LA RESPUESTA: ', respuestas);
     // Filtrar las respuestas que coinciden con el userId de la sesión activa
     const respuestasUsuario = respuestas.filter((respuesta) => respuesta.user === userId);
     respuestasUsuario.forEach((respuesta) => {
@@ -156,7 +157,7 @@ fetch('/api/response-questions/')
     formDiv.appendChild(preguntaDiv);
   }
 
-  getResponseIdForQuestion(preguntaId) {
+ getResponseIdForQuestion(preguntaId) {
     return fetch('/api/response-questions/')
       .then((response) => {
         if (!response.ok) {
@@ -165,15 +166,36 @@ fetch('/api/response-questions/')
         return response.json();
       })
       .then((respuestas) => {
-        const respuestaEncontrada = respuestas.find((respuesta) => respuesta.questions === preguntaId);
+        // Filtrar las respuestas que coinciden con el userId de la sesión activa y preguntaId
+        const respuestaEncontrada = respuestas.find((respuesta) => respuesta.questions === preguntaId && respuesta.user === userId);
         return respuestaEncontrada ? respuestaEncontrada.id : null;
-        console.log('respuestaEncontrada', respuestaEncontrada);
       })
       .catch((error) => {
         console.error('Error al cargar las respuestas:', error);
         return null;
       });
-  }
+}
+
+// Nueva función para comprobar la propiedad de la respuesta
+checkOwnershipAndLoadModal(respuestaId, textareaElement) {
+    // Realizar una solicitud para obtener la respuesta específica y validar si el usuario actual es el propietario
+    fetch(`/api/response-questions/${respuestaId}`)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('No se pudo cargar la respuesta.');
+            }
+            return response.json();
+        })
+        .then((respuesta) => {
+            if (respuesta.user === userId) {
+                console.log('El usuario actual es el propietario de la respuesta.');
+                this.loadResponseDataAndOpenModal(respuestaId, textareaElement);
+            } else {
+                console.error('El usuario no tiene permisos para editar esta respuesta.');
+            }
+        })
+        .catch((error) => console.error('Error al cargar la respuesta:', error));
+}
 
   sendResponse() {
     const textareas = document.querySelectorAll('#textareas-container textarea');
