@@ -94,7 +94,6 @@ class FormApp {
           .then((respuestaId) => {
             console.log('Respuesta id:', respuestaId);
             if (respuestaId !== null) {
-              // Aquí, después de obtener respuestaId, debes verificar si el usuario actual es el propietario de la respuesta.
               this.checkOwnershipAndLoadModal(respuestaId, textareaElement);
             } else {
               console.error('No se encontró una respuesta para la pregunta con ID', preguntaId);
@@ -122,7 +121,6 @@ class FormApp {
 
 console.log('ID de la sesión activa: ', userId);
 
-// Obtener las respuestas para el usuario actual
 fetch('/api/response-questions/')
   .then((response) => {
     if (!response.ok) {
@@ -132,7 +130,6 @@ fetch('/api/response-questions/')
   })
   .then((respuestas) => {
   console.log('ID DE LA RESPUESTA: ', respuestas);
-    // Filtrar las respuestas que coinciden con el userId de la sesión activa
     const respuestasUsuario = respuestas.filter((respuesta) => respuesta.user === userId);
     respuestasUsuario.forEach((respuesta) => {
       const preguntaId = respuesta.questions;
@@ -166,7 +163,6 @@ fetch('/api/response-questions/')
         return response.json();
       })
       .then((respuestas) => {
-        // Filtrar las respuestas que coinciden con el userId de la sesión activa y preguntaId
         const respuestaEncontrada = respuestas.find((respuesta) => respuesta.questions === preguntaId && respuesta.user === userId);
         return respuestaEncontrada ? respuestaEncontrada.id : null;
       })
@@ -176,9 +172,8 @@ fetch('/api/response-questions/')
       });
 }
 
-// Nueva función para comprobar la propiedad de la respuesta
+
 checkOwnershipAndLoadModal(respuestaId, textareaElement) {
-    // Realizar una solicitud para obtener la respuesta específica y validar si el usuario actual es el propietario
     fetch(`/api/response-questions/${respuestaId}`)
         .then((response) => {
             if (!response.ok) {
@@ -244,7 +239,6 @@ loadResponseDataAndOpenModal(respuestaId, textareaElement) {
     })
     .then((respuesta) => {
       console.log('Respuesta obtenida:', respuesta.response);
-      // En lugar de usar el valor original del textarea, cargamos la respuesta desde la API
       textareaElement.value = respuesta.response;
       this.createModal(respuestaId);
       this.openModal();
