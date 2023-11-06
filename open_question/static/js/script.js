@@ -35,8 +35,6 @@ async handleFormSubmit(event) {
 
         const urlParts = window.location.pathname.split('/');
         const formId = urlParts[urlParts.length - 2];
-
-        // Obtiene las preguntas actuales del formulario
         const currentQuestionsResponse = await fetch(`/api/form/${formId}/`);
         if (!currentQuestionsResponse.ok) {
             throw new Error('Failed to fetch the current questions in the form');
@@ -64,7 +62,6 @@ async handleFormSubmit(event) {
             questions_form: updatedQuestionIds
         };
 
-        // Realiza una solicitud PUT para actualizar el formulario con todas las preguntas
         const putResponse = await fetch(`/api/form/${formId}/`, {
             method: 'PUT',
             headers: {
@@ -115,22 +112,17 @@ async handleFormSubmit(event) {
 
                 formData.list_order = this.records.length + 1;
                 this.records.push(formData);
-
                 console.log(formData);
-
                 this.clearFields(titleInput, descriptionInput, placeholderInput, helpInput, saveButton);
-
                // const textareaContainer = this.createTextareaContainer(formData);
-
                 //this.textareasContainer.appendChild(textareaContainer);
                 // this.sendDataToAPI(formData);
                 const event = new Event('submit');
-                // Llama a la función handleFormSubmit
                 this.handleFormSubmit(event);
 
                 setTimeout(() => {
         window.location.reload();
-    }, 1100); // 2000 milisegundos (2 segundos)
+    }, 1100);
             });
 
             customForm.appendChild(titleInput);
@@ -204,13 +196,13 @@ async handleFormSubmit(event) {
         });
     }
 }
-/////////////////////////CARGAR LAS PREGUNTAS EN EL FORM
+
 
 function Up(pregunta) {
     console.log('list_order UP:', pregunta.list_order);
 
     if (pregunta.list_order > -1) {
-        const serverUrl = `${apiBaseUrl}/api/open-questions/${pregunta.id}/`;// Reemplaza con tu URL de la API
+        const serverUrl = `${apiBaseUrl}/api/open-questions/${pregunta.id}/`;
         fetch(serverUrl, {
             method: 'PUT',
             headers: {
@@ -221,10 +213,10 @@ function Up(pregunta) {
         .then(response => {
             if (response.ok) {
                 console.log('La posición de la pregunta se ha actualizado con éxito en el servidor');
-                // Actualiza la representación visual de las preguntas
+
                 setTimeout(() => {
-                    window.location.reload(); // Recargar la página
-                }, 200); // 1500 milisegundos = 1.5 segundos
+                    window.location.reload();
+                }, 200);
 
             } else {
                 console.error('Error al actualizar la posición de la pregunta en el servidor');
@@ -240,9 +232,7 @@ function Up(pregunta) {
 
 function Down(pregunta) {
     console.log('list_order DW:', pregunta.list_order);
-
-    // Realiza una solicitud PUT para cambiar la posición de la pregunta
-    const serverUrl = `${apiBaseUrl}/api/open-questions/${pregunta.id}/`;// Reemplaza con tu URL de la API
+    const serverUrl = `${apiBaseUrl}/api/open-questions/${pregunta.id}/`;
     fetch(serverUrl, {
         method: 'PUT',
         headers: {
@@ -253,19 +243,13 @@ function Down(pregunta) {
     .then(response => {
         if (response.ok) {
             console.log('La posición de la pregunta se ha actualizado con éxito en el servidor');
-            // Actualiza la representación visual de las preguntas
             setTimeout(() => {
-                window.location.reload(); // Recargar la página
-            }, 200); // 1500 milisegundos = 1.5 segundos
-
-// Obtén la pregunta con el valor de list_order más alto
+                window.location.reload();
+            }, 200);
 fetch(`${apiBaseUrl}/api/open-questions/`, { method: 'GET' })
     .then(response => response.json())
     .then(data => {
-        // Ordena las preguntas por list_order en orden descendente
         data.sort((a, b) => b.list_order - a.list_order);
-
-        // La primera pregunta en la lista será la última (la más alta)
         const lastQuestion = data[0];
         if (lastQuestion) {
             console.log('Pregunta con el list_order más alto:', lastQuestion);
@@ -284,23 +268,15 @@ fetch(`${apiBaseUrl}/api/open-questions/`, { method: 'GET' })
     });
 }
 
-
-
-
-
-
 async function updateIcon(pregunta) {
 const preguntaId = pregunta.id;
     try {
-        // Obtén los datos actuales de la pregunta desde tu API
         const response = await fetch(`${apiBaseUrl}/api/open-questions/${preguntaId}/`);
         if (!response.ok) {
             console.error('Error al obtener los datos de la pregunta');
             return;
         }
         const preguntaData = await response.json();
-
-        // Crear elementos input para la edición
         const titleInput = document.createElement('input');
         titleInput.type = 'text';
         titleInput.value = preguntaData.title;
@@ -317,14 +293,11 @@ const preguntaId = pregunta.id;
         helpInput.type = 'text';
         helpInput.value = preguntaData.help;
 
-        // Botón para guardar los cambios
         const saveChangesButton = document.createElement('button');
         saveChangesButton.textContent = 'Save Changes';
         saveChangesButton.classList.add('blue-button');
 
-        // Evento para guardar los cambios
         saveChangesButton.addEventListener('click', async () => {
-            // Obtén los valores editados de los campos de entrada
             const editedData = {
                 title: titleInput.value,
                 description: descriptionInput.value,
@@ -332,8 +305,6 @@ const preguntaId = pregunta.id;
                 help: helpInput.value
             };
 
-
-            // Realiza una solicitud PUT con los datos editados a tu API
             const putResponse = await fetch(`${apiBaseUrl}/api/open-questions/${preguntaId}/`, {
                 method: 'PUT',
                 headers: {
@@ -344,7 +315,6 @@ const preguntaId = pregunta.id;
 
             if (putResponse.ok) {
                 console.log('Pregunta actualizada exitosamente');
-                // Espera 2 segundos y luego recarga la página
         setTimeout(() => {
             window.location.reload();
         }, 200);
@@ -353,9 +323,8 @@ const preguntaId = pregunta.id;
             }
         });
 
-        // Agregar los elementos al formulario de edición
-        const customForm = document.getElementById('miFormulario'); // Reemplaza con el ID correcto
-        customForm.innerHTML = ''; // Limpia el contenido anterior
+        const customForm = document.getElementById('miFormulario');
+        customForm.innerHTML = '';
         customForm.appendChild(titleInput);
         customForm.appendChild(descriptionInput);
         customForm.appendChild(placeholderInput);
@@ -366,17 +335,12 @@ const preguntaId = pregunta.id;
         console.error('Error al obtener los datos de la pregunta:', error);
     }
 }
-
-
-
-
 function deleteQuestion(pregunta, preguntaDiv, preguntaId) {
     const confirmDelete = confirm('¿Seguro que deseas eliminar esta pregunta?');
     if (!confirmDelete) {
-        return; // Si el usuario cancela la eliminación, no hagas nada
+        return;
     }
 
-    // Realizar la solicitud DELETE a la API utilizando el ID de la pregunta
     fetch(`${apiBaseUrl}/api/open-questions/${preguntaId}/`, {
         method: 'DELETE',
     })
@@ -384,7 +348,6 @@ function deleteQuestion(pregunta, preguntaDiv, preguntaId) {
         .then(response => {
             if (response.ok) {
                 console.log('Pregunta eliminada exitosamente');
-                // Elimina el textarea del formulario en el cliente
                 const textareaElement = preguntaDiv.querySelector('textarea');
                 if (textareaElement) {
                     textareaElement.remove();
@@ -396,8 +359,6 @@ function deleteQuestion(pregunta, preguntaDiv, preguntaId) {
         .catch(error => {
             console.error('Error al enviar la solicitud DELETE:', error);
         });
-
-    // Luego de eliminar el textarea, también puedes eliminar la preguntaDiv si es necesario
     preguntaDiv.remove();
 }
 
@@ -428,8 +389,6 @@ function loadform() {
                 formDiv.appendChild(titleform);
                 formDiv.appendChild(descriptionform);
 
-
-
                 const questionsData = await Promise.all(formulario.questions_form.map(async preguntaId => {
                     const response = await fetch(`${apiBaseUrl}/api/open-questions/${preguntaId}/`);
                     if (!response.ok) {
@@ -438,9 +397,7 @@ function loadform() {
                     return response.json();
                 }));
 
-                // Ordena las preguntas por list_order
                 questionsData.sort((a, b) => a.list_order - b.list_order);
-
                 questionsData.forEach(pregunta => {
                 console.log('este es el pregunta:',pregunta);
                              console.log('ID de la pregunta:', pregunta.id, 'title',pregunta.title, 'list_order', pregunta.list_order);
@@ -542,8 +499,6 @@ function loadform() {
         console.error('Formulario ID no proporcionado en la URL.');
     }
 }
-
-/////////////////////////CARGAR LAS PREGUNTAS EN EL FORM
 
 new FormManager();
 window.addEventListener('load', () => {

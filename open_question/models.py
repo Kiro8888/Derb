@@ -14,7 +14,6 @@ class OpenQuestion(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk is None:
-            # Si es un nuevo registro, obtén el valor máximo actual y suma 1
             max_order = OpenQuestion.objects.aggregate(models.Max('list_order'))['list_order__max']
             if max_order is not None:
                 self.list_order = max_order + 1

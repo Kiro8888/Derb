@@ -1,17 +1,11 @@
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 import json
-
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.generics import get_object_or_404
-
 from open_question.models import OpenQuestion, Response
-
-
 from django.shortcuts import render, redirect
-
 from .models import Form
-
 from django.shortcuts import render
 from .models import Form, OpenQuestion
 import requests
@@ -93,20 +87,20 @@ def form(request):
 
 @login_required
 def user_response(request, form_id=None):
-    user_id = None  # Valor predeterminado para usuarios no autenticados
+    user_id = None
     if request.user.is_authenticated:
         user_id = request.user.id
     if form_id is not None:
         formulario = get_object_or_404(Form, pk=form_id)
 
-        # Obtén el usuario autenticado
+        # USER SESSION
         usuario_actual = request.user
 
-        # Filtra las respuestas del usuario actual
+        # Filtrar  respuestas por usuario actual
         respuestas_del_usuario = Response.objects.filter(user=usuario_actual)
 
         return render(request, 'open_question_user.html',
-                      {'formulario': formulario, 'respuestas_del_usuario': respuestas_del_usuario, 'user_id': user_id}) # Pasa el user_id a la plantilla
+                      {'formulario': formulario, 'respuestas_del_usuario': respuestas_del_usuario, 'user_id': user_id})
     else:
         return render(request, 'open_question_user.html', {'user_id': user_id})
 
@@ -117,8 +111,6 @@ def create_response(request):
         user = request.user
         pregunta_id = request.POST.get('pregunta_id')
         respuesta_texto = request.POST.get('respuesta_texto')
-
-        # Crea una nueva respuesta asociada al usuario actual
         Response.objects.create(user=user, pregunta_id=pregunta_id, response=respuesta_texto)
 
         return JsonResponse({'message': 'Respuesta creada con éxito'})

@@ -1,349 +1,332 @@
-const formSubmitButton = document.getElementById('form_submit');
-    const formularioUser = document.getElementById('formulario-user');
-    const urlParams = new URLSearchParams(window.location.search);
-    const formId = urlParams.get('form_id');
-function loadform() {
+class FormApp {
+  constructor() {
+    this.formSubmitButton = document.getElementById('form_submit');
+    this.formularioUser = document.getElementById('formulario-user');
+    this.urlParams = new URLSearchParams(window.location.search);
+    this.formId = this.urlParams.get('form_id');
+
+    this.formSubmitButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      this.sendResponse();
+    });
+
+    window.addEventListener('load', () => {
+      this.loadForm();
+    });
+  }
+
+  loadForm() {
     const formId = window.location.pathname.split('/').filter(Boolean).pop();
     console.log(formId);
 
     if (formId) {
-        fetch(`/api/form/${formId}/`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('No se pudo cargar el formulario.');
-                }
-                return response.json();
-            })
-            .then(async formulario => {
-                const textareasContainer = document.getElementById('textareas-container');
-                const formDiv = document.createElement('div');
-                formDiv.className = 'formulario';
-
-                const titleform = document.createElement('h2');
-                titleform.textContent = formulario.title_form;
-
-                const descriptionform = document.createElement('p');
-                descriptionform.textContent = formulario.title_description;
-
-                formDiv.appendChild(titleform);
-                formDiv.appendChild(descriptionform);
-
-                const preguntaIds = formulario.questions_form;
-
-                // Obtener los detalles de cada pregunta en el orden correcto
-                const preguntas = await Promise.all(preguntaIds.map(async preguntaId => {
-                    const response = await fetch(`/api/open-questions/${preguntaId}/`);
-                    if (!response.ok) {
-                        throw new Error('No se pudo cargar la pregunta.');
-                    }
-                    return response.json();
-                }));
-
-                // Ordenar las preguntas por list_order
-                preguntas.sort((a, b) => a.list_order - b.list_order);
-
-                for (const pregunta of preguntas) {
-                    const preguntaDiv = document.createElement('div');
-                    preguntaDiv.className = 'pregunta';
-
-                    const tituloPregunta = document.createElement('h3');
-                    tituloPregunta.textContent = pregunta.title;
-
-                    const descripcionPregunta = document.createElement('p');
-                    descripcionPregunta.textContent = pregunta.description;
-
-                    const textareaElement = document.createElement('textarea');
-                    textareaElement.placeholder = pregunta.placeholder;
-                    textareaElement.style.width = '100%';
-                    textareaElement.style.height = '200px';
-                    textareaElement.setAttribute('data-question-id', pregunta.id);
-
-                    const sendButton = document.createElement('button');
-                    sendButton.textContent = 'Edit';
-
-                    // Agregar un manejador de eventos al botón para enviar la respuesta
-                    sendButton.addEventListener('click', function () {
-                        getResponseIdForQuestion(pregunta.id)
-                            .then(respuestaId => {
-                                if (respuestaId !== null) {
-                                    console.log('ID de respuesta:', respuestaId);
-                                    fetch(`/api/response-questions/${respuestaId}`)
-                                        .then(response => {
-                                            if (!response.ok) {
-                                                throw new Error('No se pudo cargar la respuesta.');
-                                            }
-                                            return response.json();
-                                        })
-                                        .then(respuesta => {
-                                            console.log('Respuesta obtenida:', respuesta.response);
-                                            textareaElement.value = respuesta.response;
-                                            createModal(respuestaId); // Crea el modal
-                                            openModal(); // Muestra el modal
-                                        })
-                                        .catch(error => console.error('Error al cargar la respuesta:', error));
-                                } else {
-                                    console.error('No se encontró una respuesta para la pregunta con ID', pregunta.id);
-                                }
-                            });
-                    });
-
-                    textareaElement.style.width = '100%';
-                    textareaElement.style.height = '200px';
-
-                    const help = document.createElement('button');
-                    help.textContent = 'Help';
-
-                    help.addEventListener('click', function () {
-                        Swal.fire({
-                            title: 'Help',
-                            text: pregunta.help,
-                            icon: 'info',
-                            confirmButtonText: 'OK'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                console.log('Confirm OK');
-                            }
-                        });
-                    });
-// Luego, obtén el ID de respuesta con la función
-console.log('estamos imprimiendo el user.id: ', userId);
-getResponseIdForQuestion(pregunta.id, userId) // Pasa el ID del usuario a la función
-    .then(respuestaId => {
-        if (respuestaId !== null) {
-            console.log('ID de respuesta:', respuestaId);
-            fetch(`/api/response-questions/${respuestaId}?user=${userId}`) // Agrega el filtro por usuario
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('No se pudo cargar la respuesta.');
-                    }
-                    return response.json();
-                })
-                .then(respuesta => {
-                    console.log('Respuesta .user', respuesta.user);
-                    if (userId === respuesta.user) {
-                        textareaElement.value = respuesta.response;
-                        textareaElement.readOnly = true;
-                    } else {
-                        console.log('El usuario no coincide con el propietario de la respuesta.');
-                        // Puedes tomar una acción adicional aquí, como mostrar un mensaje o realizar otra lógica.
-                    }
-                })
-                .catch(error => console.error('Error al cargar la respuesta:', error));
-        } else {
-            // Manejar el caso en que no se encuentra una respuesta
-            console.error('No se encontró una respuesta para la pregunta con ID', pregunta.id);
-        }
-    });
-
-
-                    preguntaDiv.appendChild(tituloPregunta);
-                    preguntaDiv.appendChild(descripcionPregunta);
-                    preguntaDiv.appendChild(textareaElement);
-                    preguntaDiv.appendChild(sendButton);
-                    preguntaDiv.appendChild(help);
-
-                    formDiv.appendChild(preguntaDiv);
-                }
-
-                textareasContainer.appendChild(formDiv);
-            })
-            .catch(error => console.error('Error al cargar el formulario:', error));
-    } else {
-        console.error('Formulario ID no proporcionado en la URL.');
-    }
-}
-
-
-    function getResponseIdForQuestion(preguntaId) {
-        return fetch('/api/response-questions/') // Realiza una solicitud a la API de respuestas
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('No se pudieron cargar las respuestas.');
-                }
-                return response.json();
-            })
-            .then(respuestas => {
-                const respuestaEncontrada = respuestas.find(respuesta => respuesta.questions === preguntaId);
-                return respuestaEncontrada ? respuestaEncontrada.id : null;
-            })
-            .catch(error => {
-                console.error('Error al cargar las respuestas:', error);
-                return null; // Manejar el error de la solicitud
-            });
-    }
-
-
-
-function sendresponse() {
-    const textareas = document.querySelectorAll('#textareas-container textarea');
-
-    textareas.forEach((textarea) => {
-        const preguntaID = +textarea.getAttribute('data-question-id');
-        const respuesta = textarea.value;
-
-        // Verifica si la respuesta no está vacía
-        if (respuesta.trim() !== '') {
-            const respuestaActual = {
-                "questions": preguntaID,
-                "response": respuesta,
-                "user": userId
-            };
-
-            // Obtén el token CSRF de la cookie
-            const csrftoken = getCookie('csrftoken');
-
-            // Realiza la solicitud POST con el token CSRF incluido en las cabeceras
-            fetch('/api/response-questions/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken  // Incluye el token CSRF en las cabeceras
-                },
-                body: JSON.stringify(respuestaActual)
-            })
-            .then(response => {
-                if (response.ok) {
-                    console.log('Datos enviados con éxito a la API de respuestas');
-                } else {
-                    throw new Error('Error al enviar los datos a la API de respuestas.');
-                }
-            })
-            .catch(error => console.error(error.message));
-        } else {
-            // Puedes agregar una lógica opcional aquí si deseas manejar respuestas vacías de manera especial o simplemente omitirlas.
-        }
-    });
-}
-
-// Función para obtener el token CSRF de la cookie
-function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-}
-
-    function createModal(respuestaId) {
-      // Crea el elemento del modal
-      const modal = document.createElement('div');
-      modal.id = 'myModal';
-      modal.className = 'modal';
-
-      // Crea el contenido del modal
-      const modalContent = document.createElement('div');
-      modalContent.className = 'modal-content';
-
-      // Agrega el título
-      const modalTitle = document.createElement('h2');
-      modalTitle.textContent = 'Update Response';
-
-      // Crea un nuevo textarea
-      const textareaElement = document.createElement('textarea');
-      textareaElement.style.width = '100%';
-      textareaElement.style.height = '200px';
-
-      // Obtén la respuesta correspondiente al respuestaId y colócala en el textarea
-      fetch(`/api/response-questions/${respuestaId}`)
-        .then(response => {
+      fetch(`/api/form/${formId}/`)
+        .then((response) => {
           if (!response.ok) {
-            throw new Error('No se pudo cargar la respuesta.');
+            throw new Error('No se pudo cargar el formulario.');
           }
           return response.json();
         })
-        .then(respuesta => {
-          textareaElement.value = respuesta.response;
-          //textareaElement.readOnly = true;
+        .then(async (formulario) => {
+          this.displayForm(formulario);
         })
-        .catch(error => console.error('Error al cargar la respuesta:', error));
+        .catch((error) => console.error('Error al cargar el formulario:', error));
+    } else {
+      console.error('Formulario ID no proporcionado en la URL.');
+    }
+  }
 
-        // Crea un botón de actualización
-      const updateButton = document.createElement('button');
-      updateButton.textContent = 'Update';
-    updateButton.addEventListener('click', () => {
-      // Obtén la nueva respuesta del textarea
-      const nuevaRespuesta = textareaElement.value;
+  displayForm(formulario) {
+    const textareasContainer = document.getElementById('textareas-container');
+    const formDiv = document.createElement('div');
+    formDiv.className = 'formulario';
 
-      // Obtén la respuesta actual de la API
-      fetch(`/api/response-questions/${respuestaId}/`)
-      .then(response => {
+    const titleForm = document.createElement('h2');
+    titleForm.textContent = formulario.title_form;
+
+    const descriptionForm = document.createElement('p');
+    descriptionForm.textContent = formulario.title_description;
+
+    formDiv.appendChild(titleForm);
+    formDiv.appendChild(descriptionForm);
+
+    const preguntaIds = formulario.questions_form;
+
+    Promise.all(preguntaIds.map(async (preguntaId) => {
+      const response = await fetch(`/api/open-questions/${preguntaId}/`);
+      if (!response.ok) {
+        throw new Error('No se pudo cargar la pregunta.');
+      }
+      return response.json();
+    })
+    ).then((preguntas) => {
+      preguntas.sort((a, b) => a.list_order - b.list_order);
+      preguntas.forEach((pregunta) => {
+        this.displayQuestion(pregunta, formDiv);
+      });
+
+      textareasContainer.appendChild(formDiv);
+    }).catch((error) => console.error('Error al cargar las preguntas:', error));
+  }
+
+  displayQuestion(pregunta, formDiv) {
+    const preguntaDiv = document.createElement('div');
+    preguntaDiv.className = 'pregunta';
+
+    const tituloPregunta = document.createElement('h3');
+    tituloPregunta.textContent = pregunta.title;
+
+    const descripcionPregunta = document.createElement('p');
+    descripcionPregunta.textContent = pregunta.description;
+
+    const textareaElement = document.createElement('textarea');
+    textareaElement.placeholder = pregunta.placeholder;
+    textareaElement.style.width = '100%';
+    textareaElement.style.height = '200px';
+    textareaElement.setAttribute('data-question-id', pregunta.id);
+
+    const sendButton = document.createElement('button');
+    sendButton.textContent = 'Edit';
+sendButton.addEventListener('click', () => {
+    const preguntaId = pregunta.id;
+    console.log('ID de la pregunta', preguntaId);
+    this.getResponseIdForQuestion(preguntaId)
+      .then((respuestaId) => {
+        console.log('Respuesta id:', respuestaId);
+        if (respuestaId !== null) {
+          console.log('ID de respuesta:', respuestaId);
+          this.loadResponseDataAndOpenModal(respuestaId, textareaElement);
+        } else {
+          console.error('No se encontró una respuesta para la pregunta con ID', preguntaId);
+        }
+      });
+});
+
+    textareaElement.style.width = '100%';
+    textareaElement.style.height = '200px';
+
+    const help = document.createElement('button');
+    help.textContent = 'Help';
+    help.addEventListener('click', () => {
+      Swal.fire({
+        title: 'Help',
+        text: pregunta.help,
+        icon: 'info',
+        confirmButtonText: 'OK'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          console.log('Confirm OK');
+        }
+      });
+    });
+
+console.log('ID de la sesión activa: ', userId);
+
+// Obtener las respuestas para el usuario actual
+fetch('/api/response-questions/')
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error('No se pudieron cargar las respuestas.');
+    }
+    return response.json();
+  })
+  .then((respuestas) => {
+    // Filtrar las respuestas que coinciden con el userId de la sesión activa
+    const respuestasUsuario = respuestas.filter((respuesta) => respuesta.user === userId);
+    respuestasUsuario.forEach((respuesta) => {
+      const preguntaId = respuesta.questions;
+      const textareaElement = document.querySelector(`textarea[data-question-id="${preguntaId}"]`);
+      if (textareaElement) {
+        textareaElement.value = respuesta.response;
+        textareaElement.readOnly = true;
+      }
+    });
+  })
+  .catch((error) => {
+    console.error('Error al cargar las respuestas:', error);
+  });
+
+
+    preguntaDiv.appendChild(tituloPregunta);
+    preguntaDiv.appendChild(descripcionPregunta);
+    preguntaDiv.appendChild(textareaElement);
+    preguntaDiv.appendChild(sendButton);
+    preguntaDiv.appendChild(help);
+
+    formDiv.appendChild(preguntaDiv);
+  }
+
+  getResponseIdForQuestion(preguntaId) {
+    return fetch('/api/response-questions/')
+      .then((response) => {
         if (!response.ok) {
-          throw new Error('No se pudo cargar la respuesta existente.');
+          throw new Error('No se pudieron cargar las respuestas.');
         }
         return response.json();
       })
-      .then(respuesta => {
-        // Actualiza el campo 'response' de la respuesta
-        respuesta.response = nuevaRespuesta;
-        const csrfToken = getCookie('csrftoken');
-        // Envía una solicitud PUT para actualizar la respuesta
-        return fetch(`/api/response-questions/${respuestaId}/`, {
-          method: 'PUT',
+      .then((respuestas) => {
+        const respuestaEncontrada = respuestas.find((respuesta) => respuesta.questions === preguntaId);
+        return respuestaEncontrada ? respuestaEncontrada.id : null;
+        console.log('respuestaEncontrada', respuestaEncontrada);
+      })
+      .catch((error) => {
+        console.error('Error al cargar las respuestas:', error);
+        return null;
+      });
+  }
+
+  sendResponse() {
+    const textareas = document.querySelectorAll('#textareas-container textarea');
+
+    textareas.forEach((textarea) => {
+      const preguntaID = +textarea.getAttribute('data-question-id');
+      const respuesta = textarea.value;
+
+      if (respuesta.trim() !== '') {
+        const respuestaActual = {
+          questions: preguntaID,
+          response: respuesta,
+          user: userId
+        };
+        const csrftoken = this.getCookie('csrftoken');
+
+        fetch('/api/response-questions/', {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-             'X-CSRFToken': csrfToken
-
+            'X-CSRFToken': csrftoken
           },
-          body: JSON.stringify(respuesta)
-        });
-      })
-      .then(response => {
-        if (response.ok) {
-          console.log('Respuesta actualizada con éxito');
-          closeAndRemoveModal(); // Cierra el modal después de actualizar
-                      setTimeout(() => {
-        window.location.reload();
-    }, 500); // 500 milisegundos (1,3 segundos)
-        } else {
-          throw new Error('Error al actualizar la respuesta.');
-        }
-      })
-      .catch(error => console.error(error.message));
+          body: JSON.stringify(respuestaActual)
+        })
+          .then((response) => {
+            if (response.ok) {
+              console.log('Datos enviados con éxito a la API de respuestas');
+                          setTimeout(() => {
+              window.location.reload();
+            }, 500);
+            } else {
+              throw new Error('Error al enviar los datos a la API de respuestas.');
+            }
+          })
+          .catch((error) => console.error(error.message));
+      }
     });
-
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+loadResponseDataAndOpenModal(respuestaId, textareaElement) {
+  fetch(`/api/response-questions/${respuestaId}`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('No se pudo cargar la respuesta.');
+      }
+      return response.json();
+    })
+    .then((respuesta) => {
+      console.log('Respuesta obtenida:', respuesta.response);
+      // En lugar de usar el valor original del textarea, cargamos la respuesta desde la API
+      textareaElement.value = respuesta.response;
+      this.createModal(respuestaId);
+      this.openModal();
+    })
+    .catch((error) => console.error('Error al cargar la respuesta:', error));
 }
 
-      // Agrega un botón de cierre
-      const closeModalButton = document.createElement('span');
-      closeModalButton.className = 'close';
-      closeModalButton.textContent = '×';
-      closeModalButton.onclick = closeAndRemoveModal;
+  getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
 
+  createModal(respuestaId) {
+    const modal = document.createElement('div');
+    modal.id = 'myModal';
+    modal.className = 'modal';
 
-      // Agrega elementos al contenido del modal
-      modalContent.appendChild(modalTitle);
-      modalContent.appendChild(textareaElement); // Agrega el textarea al contenido del modal
-      modalContent.appendChild(closeModalButton);
-       modalContent.appendChild(updateButton);
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
 
-      // Agrega el contenido del modal al modal
-      modal.appendChild(modalContent);
+    const modalTitle = document.createElement('h2');
+    modalTitle.textContent = 'Update Response';
 
-      // Agrega el modal al documento
-      document.body.appendChild(modal);
-    }
+    const textareaElement = document.createElement('textarea');
+    textareaElement.style.width = '100%';
+    textareaElement.style.height = '200px';
 
+    fetch(`/api/response-questions/${respuestaId}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('No se pudo cargar la respuesta.');
+        }
+        return response.json();
+      })
+      .then((respuesta) => {
+        textareaElement.value = respuesta.response;
+      })
+      .catch((error) => console.error('Error al cargar la respuesta:', error));
 
-    function openModal() {
-      const modal = document.getElementById('myModal');
-      modal.style.display = 'block';
-    }
+    const updateButton = document.createElement('button');
+    updateButton.textContent = 'Update';
+    updateButton.addEventListener('click', () => {
+      const nuevaRespuesta = textareaElement.value;
 
-    function closeAndRemoveModal() {
-      const modal = document.getElementById('myModal');
-      modal.style.display = 'none';
-      // Remueve el modal del documento
-      modal.parentNode.removeChild(modal);
-    }
+      fetch(`/api/response-questions/${respuestaId}/`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('No se pudo cargar la respuesta existente.');
+          }
+          return response.json();
+        })
+        .then((respuesta) => {
+          respuesta.response = nuevaRespuesta;
+          const csrfToken = this.getCookie('csrftoken');
 
-    formSubmitButton.addEventListener('click', function (event) {
-        event.preventDefault();
-        sendresponse();
+          return fetch(`/api/response-questions/${respuestaId}/`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(respuesta)
+          });
+        })
+        .then((response) => {
+          if (response.ok) {
+            console.log('Respuesta actualizada con éxito');
+            this.closeAndRemoveModal();
+            setTimeout(() => {
+              window.location.reload();
+            }, 500);
+          } else {
+            throw new Error('Error al actualizar la respuesta.');
+          }
+        })
+        .catch((error) => console.error(error.message));
     });
 
-    window.addEventListener('load', () => {
-        loadform(formId);
-        //    getResponseIds();
-    });
+    const closeModalButton = document.createElement('span');
+    closeModalButton.className = 'close';
+    closeModalButton.textContent = '×';
+    closeModalButton.onclick = this.closeAndRemoveModal;
+
+    modalContent.appendChild(modalTitle);
+    modalContent.appendChild(textareaElement);
+    modalContent.appendChild(closeModalButton);
+    modalContent.appendChild(updateButton);
+
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+  }
+
+  openModal() {
+    const modal = document.getElementById('myModal');
+    modal.style.display = 'block';
+  }
+
+  closeAndRemoveModal() {
+    const modal = document.getElementById('myModal');
+    modal.style.display = 'none';
+
+    modal.parentNode.removeChild(modal);
+  }
+}
+
+new FormApp();
