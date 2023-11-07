@@ -85,7 +85,9 @@ class FormApp {
     textareaElement.style.height = '200px';
     textareaElement.setAttribute('data-question-id', pregunta.id);
 
-    const sendButton = document.createElement('button');
+
+//VAMOS A ELIMINAR ESTO
+  /*  const sendButton = document.createElement('button');
     sendButton.textContent = 'Edit';
     sendButton.addEventListener('click', () => {
         const preguntaId = pregunta.id;
@@ -99,8 +101,8 @@ class FormApp {
               console.error('No se encontró una respuesta para la pregunta con ID', preguntaId);
             }
           });
-    });
-
+    });*/
+//VAMOS A ELIMINAR ESTO
     textareaElement.style.width = '100%';
     textareaElement.style.height = '200px';
 
@@ -119,8 +121,8 @@ class FormApp {
       });
     });
 
+// CARGAR RESPUESTAS
 console.log('ID de la sesión activa: ', userId);
-
 fetch('/api/response-questions/')
   .then((response) => {
     if (!response.ok) {
@@ -129,14 +131,14 @@ fetch('/api/response-questions/')
     return response.json();
   })
   .then((respuestas) => {
-  console.log('ID DE LA RESPUESTA: ', respuestas);
+    console.log('ID DE LA RESPUESTA: ', respuestas);
     const respuestasUsuario = respuestas.filter((respuesta) => respuesta.user === userId);
     respuestasUsuario.forEach((respuesta) => {
       const preguntaId = respuesta.questions;
       const textareaElement = document.querySelector(`textarea[data-question-id="${preguntaId}"]`);
       if (textareaElement) {
         textareaElement.value = respuesta.response;
-        textareaElement.readOnly = true;
+        textareaElement.readOnly = false;
       }
     });
   })
@@ -144,17 +146,19 @@ fetch('/api/response-questions/')
     console.error('Error al cargar las respuestas:', error);
   });
 
+// CARGAR RESPUESTAS
+
 
     preguntaDiv.appendChild(tituloPregunta);
     preguntaDiv.appendChild(descripcionPregunta);
     preguntaDiv.appendChild(textareaElement);
-    preguntaDiv.appendChild(sendButton);
+    //preguntaDiv.appendChild(sendButton);
     preguntaDiv.appendChild(help);
 
     formDiv.appendChild(preguntaDiv);
   }
 
- getResponseIdForQuestion(preguntaId) {
+ /*getResponseIdForQuestion(preguntaId) {
     return fetch('/api/response-questions/')
       .then((response) => {
         if (!response.ok) {
@@ -170,7 +174,7 @@ fetch('/api/response-questions/')
         console.error('Error al cargar las respuestas:', error);
         return null;
       });
-}
+}*/
 
 
 checkOwnershipAndLoadModal(respuestaId, textareaElement) {
@@ -252,7 +256,7 @@ loadResponseDataAndOpenModal(respuestaId, textareaElement) {
     if (parts.length === 2) return parts.pop().split(';').shift();
   }
 
-  createModal(respuestaId) {
+  /*createModal(respuestaId) {
     const modal = document.createElement('div');
     modal.id = 'myModal';
     modal.className = 'modal';
@@ -342,7 +346,7 @@ loadResponseDataAndOpenModal(respuestaId, textareaElement) {
     modal.style.display = 'none';
 
     modal.parentNode.removeChild(modal);
-  }
+  }*/
 }
 
 new FormApp();
