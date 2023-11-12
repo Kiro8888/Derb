@@ -85,24 +85,6 @@ class FormApp {
     textareaElement.style.height = '200px';
     textareaElement.setAttribute('data-question-id', pregunta.id);
 
-
-//VAMOS A ELIMINAR ESTO
-  /*  const sendButton = document.createElement('button');
-    sendButton.textContent = 'Edit';
-    sendButton.addEventListener('click', () => {
-        const preguntaId = pregunta.id;
-        console.log('ID de la pregunta', preguntaId);
-        this.getResponseIdForQuestion(preguntaId)
-          .then((respuestaId) => {
-            console.log('Respuesta id:', respuestaId);
-            if (respuestaId !== null) {
-              this.checkOwnershipAndLoadModal(respuestaId, textareaElement);
-            } else {
-              console.error('No se encontró una respuesta para la pregunta con ID', preguntaId);
-            }
-          });
-    });*/
-//VAMOS A ELIMINAR ESTO
     textareaElement.style.width = '100%';
     textareaElement.style.height = '200px';
 
@@ -158,23 +140,6 @@ fetch('/api/response-questions/')
     formDiv.appendChild(preguntaDiv);
   }
 
- /*getResponseIdForQuestion(preguntaId) {
-    return fetch('/api/response-questions/')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('No se pudieron cargar las respuestas.');
-        }
-        return response.json();
-      })
-      .then((respuestas) => {
-        const respuestaEncontrada = respuestas.find((respuesta) => respuesta.questions === preguntaId && respuesta.user === userId);
-        return respuestaEncontrada ? respuestaEncontrada.id : null;
-      })
-      .catch((error) => {
-        console.error('Error al cargar las respuestas:', error);
-        return null;
-      });
-}*/
 
 
 checkOwnershipAndLoadModal(respuestaId, textareaElement) {
@@ -256,97 +221,7 @@ loadResponseDataAndOpenModal(respuestaId, textareaElement) {
     if (parts.length === 2) return parts.pop().split(';').shift();
   }
 
-  /*createModal(respuestaId) {
-    const modal = document.createElement('div');
-    modal.id = 'myModal';
-    modal.className = 'modal';
 
-    const modalContent = document.createElement('div');
-    modalContent.className = 'modal-content';
-
-    const modalTitle = document.createElement('h2');
-    modalTitle.textContent = 'Update Response';
-
-    const textareaElement = document.createElement('textarea');
-    textareaElement.style.width = '100%';
-    textareaElement.style.height = '200px';
-
-    fetch(`/api/response-questions/${respuestaId}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('No se pudo cargar la respuesta.');
-        }
-        return response.json();
-      })
-      .then((respuesta) => {
-        textareaElement.value = respuesta.response;
-      })
-      .catch((error) => console.error('Error al cargar la respuesta:', error));
-
-    const updateButton = document.createElement('button');
-    updateButton.textContent = 'Update';
-    updateButton.addEventListener('click', () => {
-      const nuevaRespuesta = textareaElement.value;
-
-      fetch(`/api/response-questions/${respuestaId}/`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error('No se pudo cargar la respuesta existente.');
-          }
-          return response.json();
-        })
-        .then((respuesta) => {
-          respuesta.response = nuevaRespuesta;
-          const csrfToken = this.getCookie('csrftoken');
-
-          return fetch(`/api/response-questions/${respuestaId}/`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify(respuesta)
-          });
-        })
-        .then((response) => {
-          if (response.ok) {
-            console.log('Respuesta actualizada con éxito');
-            this.closeAndRemoveModal();
-            setTimeout(() => {
-              window.location.reload();
-            }, 500);
-          } else {
-            throw new Error('Error al actualizar la respuesta.');
-          }
-        })
-        .catch((error) => console.error(error.message));
-    });
-
-    const closeModalButton = document.createElement('span');
-    closeModalButton.className = 'close';
-    closeModalButton.textContent = '×';
-    closeModalButton.onclick = this.closeAndRemoveModal;
-
-    modalContent.appendChild(modalTitle);
-    modalContent.appendChild(textareaElement);
-    modalContent.appendChild(closeModalButton);
-    modalContent.appendChild(updateButton);
-
-    modal.appendChild(modalContent);
-    document.body.appendChild(modal);
-  }
-
-  openModal() {
-    const modal = document.getElementById('myModal');
-    modal.style.display = 'block';
-  }
-
-  closeAndRemoveModal() {
-    const modal = document.getElementById('myModal');
-    modal.style.display = 'none';
-
-    modal.parentNode.removeChild(modal);
-  }*/
 }
 
 new FormApp();

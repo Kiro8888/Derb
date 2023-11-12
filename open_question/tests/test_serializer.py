@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from open_question.models import OpenQuestion, Response, Form
-
+import pytest
+from open_question.serializer import OpenQuestionSerializer
+from open_question.models import OpenQuestion
 class OpenQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = OpenQuestion
@@ -21,3 +23,11 @@ class FormSerializer(serializers.ModelSerializer):
     class Meta:
         model = Form
         fields = '__all__'
+
+
+
+@pytest.mark.django_db
+def test_open_question_serializer():
+    question = OpenQuestion.objects.create(title="Test Question")
+    serializer = OpenQuestionSerializer(question)
+    assert serializer.data['title'] == "Test Question"
